@@ -1,0 +1,26 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {"message": "지표를 표준화해 규모·지역을 보정한 뒤 전국 백분위로 상위 분관을 판정한다", "relation": "순서 있는 절차 + 각 단계의 기준", "why": "번호 탭이 순서를, 카드 안 목록이 단계마다 하는 일을, 아래 띠가 공통 규칙을 보인다"},
+  "title": "서비스 지수 산출 및 전국 상위 % 판정 체계",
+  "subtitle": "지표를 표준화해 규모·지역을 보정하고, 전국 백분위로 상위 분관을 판정",
+  "body": [
+    {"row": [
+      {"head": "대상 분관", "num": "1", "icon": "users", "align": "center", "items": ["공공·작은도서관 범위", "연중 개관 요건"], "tight": true},
+      {"head": "지표 산출", "num": "2", "icon": "report-analytics", "align": "center", "items": ["이용·대출 지수 산출", "보조 지표 계산"], "tight": true},
+      {"head": "보정", "num": "3", "icon": "adjustments-horizontal", "align": "center", "items": ["4개 규모 구간", "지역 보정 계수"], "tight": true},
+      {"head": "백분위", "num": "4", "icon": "chart-bar", "align": "center", "items": ["99·95·90 절단", "민감도 점검"], "tight": true},
+      {"head": "판정", "num": "5", "icon": "award", "align": "center", "items": ["상위 % 구간", "결과 검증"], "tight": true, "tone": "go"}
+    ], "join": "chevron", "gap": 8},
+    {"row": [
+      {"group": "핵심 지표", "head_align": "left", "style": "soft", "body": [
+        {"chips": [{"text": "이용자 수", "icon": "chart-bar"}, {"text": "1인당 대출", "icon": "trending-up"}, {"text": "프로그램 참여", "icon": "stack-2"}, {"text": "종합 지수", "icon": "trophy"}], "cols": 2, "shape": "square"}
+      ], "w": 1},
+      {"group": "판정 원칙", "head_align": "left", "style": "soft", "body": [
+        {"items": ["종합 지수를 주 판정값으로", "규모 구간별 백분위 적용", "전자책 포함·제외 병행"], "bullet": "num"}
+      ], "w": 1.1}
+    ], "gap": 16},
+    {"chips": ["Top 1%", "Top 2%", "Top 5%", "Top 10%"], "label": "산출 예시", "fill": true}
+  ],
+  "source": "연구진 작성"
+}

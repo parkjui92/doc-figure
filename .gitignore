@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+
+# 렌더 산출물 (examples/preview 는 커밋한다)
+/out/
+/figures/
+*.tmp.html
+
+# 벤치마크 수집본(저작권 — 공개 금지)
+_private/

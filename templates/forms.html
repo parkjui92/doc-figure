@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+/* 글자 배율 — 좌표를 고정해 그리는 형태는 상한을 둔다(글자끼리 겹치지 않게). v2.0.1 */
+#figure { --fts: var(--text-scale); }
+#figure.f-quadrant, #figure.f-waterfall { --fts: min(var(--text-scale), 1.4); }
+#figure.f-funnel { --fts: min(var(--text-scale), 1.8); }
+/* =========================================================================
+   forms — '관계의 모양'으로 고르는 도식 14종.
+   spec 의 "form" 으로 고른다 (render_figure.py 는 "template": "<form>" 도 받아 준다).
+
+     cycle 순환 · funnel 깔때기 · venn 교집합 · quadrant 2×2 포지셔닝 · pyramid 위계
+     concentric 동심원 · hub 허브 · fishbone 원인 · staircase 계단 · before-after 전후
+     waterfall 증감 · iceberg 드러난/숨은 · swimlane 주체별 흐름 · logic-tree 이슈 트리
+
+   도형은 SVG, 글자는 절대배치 HTML — 한국어 줄바꿈을 브라우저가 맡는다.
+   색은 전부 토큰. 밑줄 키(_x·_y·_lane·_col·_focus …)는 배치 지시라 글자가 아니다.
+   ========================================================================= */
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:keep-all; display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 44px 30px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:26px; }
+.hd .title-row { display:flex; align-items:center; justify-content:var(--title-align); gap:20px; }
+.hd .rule { display:var(--title-deco); flex:1; height:3px; background:var(--navy-deep); position:relative; max-width:340px; }
+.hd .rule::before,.hd .rule::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--navy-deep);}
+.hd .rule.l::before{left:-2px;} .hd .rule.r::after{right:-2px;}
+.hd h1 { font-size:calc(38px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); white-space:nowrap; }
+.hd .sub { margin-top:12px; font-size:calc(20px * var(--fts)); font-weight:var(--w-label); color:var(--ink-soft); }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(24px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+
+.fm-stage { position:relative; margin:0 auto; }
+.fm-stage > svg { position:absolute; left:0; top:0; overflow:visible; }
+.fm-lbl { position:absolute; white-space:pre-line; line-height:1.32; text-align:center; z-index:2; }
+.fm-lbl.al { text-align:left; } .fm-lbl.ar { text-align:right; }
+.t1 { font-size:calc(20px * var(--fts)); font-weight:var(--w-title); color:var(--navy-deep); line-height:1.25; }
+.t1s{ font-size:calc(17px * var(--fts)); font-weight:var(--w-title); color:var(--navy-deep); line-height:1.25; }
+.t2 { font-size:calc(15px * var(--fts)); font-weight:var(--w-body); color:var(--ink); margin-top:4px; }
+.t3 { font-size:calc(14px * var(--fts)); font-weight:var(--w-label); color:var(--ink-soft); }
+.tv { font-size:calc(26px * var(--fts)); font-weight:var(--w-title); color:var(--navy-deep); line-height:1.1; }
+.tx { font-size:calc(15px * var(--fts)); font-weight:var(--w-body); color:var(--ink); }
+.fm-card  { background:var(--card-fill); border:1.5px solid var(--grid-line); border-radius:var(--radius-box); box-shadow:var(--shadow); padding:10px 14px; }
+.fm-edge  { background:var(--card-fill); border:2px solid var(--bar-border); border-radius:var(--radius-box); box-shadow:var(--shadow); padding:10px 14px; }
+.fm-soft  { background:var(--bar-fill); border:1.5px solid var(--bar-border); border-radius:var(--radius-box); padding:10px 14px; }
+.fm-muted { background:var(--neutral-fill); border:1.5px solid var(--neutral-line); border-radius:var(--radius-box); padding:10px 14px; }
+.fm-muted .t1, .fm-muted .t1s { color:var(--neutral-ink); }
+.fm-accent{ background:var(--accent-fill); border:2px var(--accent-line) var(--accent); border-radius:var(--radius-box); padding:8px 12px; }
+.fm-accent .tx, .fm-accent .t1s { color:var(--accent); font-weight:var(--w-strong); }
+.fm-strong{ background:var(--strong-fill); border-radius:var(--radius-box); box-shadow:var(--strong-ring), var(--shadow); padding:12px 16px; }
+.fm-strong .t1, .fm-strong .t1s, .fm-strong .tv, .fm-strong .tx { color:var(--strong-ink); }
+.fm-strong .t2, .fm-strong .t3 { color:var(--strong-ink-soft); }
+.fm-pill  { background:var(--strong-fill); border-radius:var(--radius-pill); box-shadow:var(--strong-ring); padding:5px 14px; }
+.fm-pill .t1s { color:var(--strong-ink); font-size:calc(16px * var(--fts)); }
+.fm-focus{ background:var(--focus-fill); border-radius:var(--radius-box); box-shadow:var(--focus-ring), var(--shadow); padding:12px 16px; }
+.fm-focus .t1, .fm-focus .t1s, .fm-focus .tv, .fm-focus .tx { color:var(--focus-ink); } .fm-focus .t2, .fm-focus .t3 { color:var(--focus-ink-soft); }
+.onF .t1, .onF .t1s, .onF .tv { color:var(--focus-ink); } .onF .t2, .onF .t3 { color:var(--focus-ink-soft); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.on3 .t1, .on3 .t1s, .on3 .t2, .on3 .tv, .on3 .t3 { color:var(--heat-3-ink); }
+.on2 .t1, .on2 .t1s, .on2 .tv { color:var(--heat-2-ink); }
+.onS .t1, .onS .t1s, .onS .tv { color:var(--strong-ink); } .onS .t2, .onS .t3 { color:var(--strong-ink-soft); }
+.bul { text-align:left; font-size:calc(16px * var(--fts)); font-weight:var(--w-body); color:var(--ink); line-height:1.45; }
+.bul div::before { content:"· "; font-weight:var(--w-title); color:var(--navy-mid); }
+.fm-muted .bul div::before { color:var(--neutral-ink); }
+
+svg .s-line   { stroke:var(--navy-mid); fill:none; stroke-width:2.5; }
+svg .s-thin   { stroke:var(--navy-mid); fill:none; stroke-width:1.5; }
+svg .s-dash   { stroke:var(--navy-marker); fill:none; stroke-width:2; stroke-dasharray:6 5; }
+svg .s-grid   { stroke:var(--grid-line); fill:none; stroke-width:1.5; stroke-dasharray:5 5; }
+svg .s-axis   { stroke:var(--ink); fill:none; stroke-width:2; }
+svg .s-accentl{ stroke:var(--accent); fill:none; stroke-width:2.5; }
+svg .s-strong { fill:var(--strong-fill); stroke:var(--navy-deep); stroke-width:2; }
+svg .s-focus  { fill:var(--focus-fill); stroke:var(--navy-deep); stroke-width:2; }
+svg .s-soft   { fill:var(--bar-fill); stroke:var(--bar-border); stroke-width:1.5; }
+svg .s-card   { fill:var(--card-fill); stroke:var(--grid-line); stroke-width:1.5; }
+svg .s-edge   { fill:var(--card-fill); stroke:var(--navy-deep); stroke-width:2; }
+svg .s-faint  { fill:var(--fill-faint); stroke:var(--line-soft); stroke-width:1; }
+svg .s-muted  { fill:var(--neutral-fill); stroke:var(--neutral-line); stroke-width:1.5; }
+svg .s-heat1  { fill:var(--heat-1); stroke:var(--line-soft); stroke-width:1; } svg .s-heat2 { fill:var(--heat-2); } svg .s-heat3 { fill:var(--heat-3); }
+svg .s-deep   { fill:var(--navy-deep); } svg .s-mid { fill:var(--navy-mid); } svg .s-marker { fill:var(--navy-marker); }
+svg .s-acc    { fill:var(--accent); } svg .s-accsoft { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+svg .s-v1 { fill:var(--track-1); fill-opacity:.16; stroke:var(--track-1); stroke-width:2.5; }
+svg .s-v2 { fill:var(--track-2); fill-opacity:.18; stroke:var(--track-2); stroke-width:2.5; }
+svg .s-v3 { fill:var(--accent);  fill-opacity:.12; stroke:var(--accent);  stroke-width:2.5; }
+svg .s-water { fill:var(--bar-fill); fill-opacity:.6; stroke:none; }
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE = /*__FIGURE_DATA__*/ null;
+const ICONS  = /*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure'), W=1412, NS="http://www.w3.org/2000/svg";
+  const D=F.data||F;               // 데이터는 "data" 아래에 두거나 최상위에 둔다
+  const form=F.form||F.template; root.classList.add('f-'+form);
+  if(F.title){ const hd=div('hd'),tr=div('title-row'); tr.append(div('rule l'),t('h1',null,F.title),div('rule r')); hd.append(tr);
+    if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd); }
+  const after=[];
+  const R = {cycle, funnel, venn, quadrant, pyramid, concentric, hub, fishbone, staircase,
+             'before-after':beforeAfter, waterfall, iceberg, swimlane, 'logic-tree':logicTree};
+  if(!R[form]) { root.append(t('div','caption','[forms] 알 수 없는 form: '+form)); return; }
+  try { R[form](D); } catch(e) { root.append(t('div','caption','[forms 오류] '+form+': '+e.message)); console.error(e); }
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+  after.forEach(fn=>fn());
+  window.__RENDER_DONE__=true; window.__TEXT_ECHO__=root.innerText.replace(/\s+/g,' ').trim();
+
+  // ───────────────────────── 공용 ─────────────────────────
+  function div(c){const e=document.createElement('div'); if(c)e.className=c; return e;}
+  function t(tag,c,txt){const e=document.createElement(tag); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;}
+  function stage(h){
+    const s=div('fm-stage'); s.style.width=W+'px'; s.style.height=h+'px';
+    const svg=el('svg',{width:W,height:h,viewBox:'0 0 '+W+' '+h});
+    svg.innerHTML='<defs><marker id="ah" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 z" class="s-mid"/></marker>'+
+      '<marker id="aha" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 z" class="s-acc"/></marker></defs>';
+    s.append(svg); root.append(s); return {el:s, svg, h, set h2(v){ s.style.height=v+'px'; svg.setAttribute('height',v); svg.setAttribute('viewBox','0 0 '+W+' '+v); }};
+  }
+  function el(tag,a,cls){const e=document.createElementNS(NS,tag); for(const k in (a||{})) e.setAttribute(k,a[k]); if(cls) e.setAttribute('class',cls); return e;}
+  function add(st,tag,a,cls){const e=el(tag,a,cls); st.svg.append(e); return e;}
+  // 글자 상자: anchor c(가운데) l(왼쪽 가운데) r(오른쪽 가운데) t(위 가운데) b(아래 가운데) tl(왼쪽 위)
+  function lab(st,x,y,w,parts,o){
+    o=o||{}; const e=div('fm-lbl '+(o.box||'')+' '+(o.cls||''));
+    const an=o.anchor||'c', tf={c:'translate(-50%,-50%)',l:'translate(0,-50%)',r:'translate(-100%,-50%)',t:'translate(-50%,0)',b:'translate(-50%,-100%)',tl:'none',tr:'translate(-100%,0)',bl:'translate(0,-100%)',br:'translate(-100%,-100%)'}[an];
+    e.style.left=x+'px'; e.style.top=y+'px'; if(w) e.style.width=w+'px'; e.style.transform=tf;
+    if(o.align==='l') e.classList.add('al'); if(o.align==='r') e.classList.add('ar');
+    parts.forEach(p=>{ if(p && p[0]!=null && p[0]!=='') e.append(t('div',p[1],p[0])); });
+    st.el.append(e); return e;
+  }
+  function bullets(items){ const b=div('bul'); (items||[]).forEach(s=>b.append(t('div',null,s))); return b; }
+  function rel(e,st){ const a=e.getBoundingClientRect(), b=st.el.getBoundingClientRect(); return {l:a.left-b.left,t:a.top-b.top,r:a.right-b.left,b:a.bottom-b.top,w:a.width,h:a.height,cx:(a.left+a.right)/2-b.left,cy:(a.top+a.bottom)/2-b.top}; }
+  function rad(d){ return d*Math.PI/180; }
+  function heat(i,n){ return n<=1||i===n-1 ? 's-heat3' : (i>=Math.ceil((n-1)/2) ? 's-heat2' : 's-heat1'); }
+  function heatTxt(c){ return c==='s-heat3' ? 'on3' : (c==='s-heat2' ? 'on2' : ''); }
+
+  // ───────────────────────── 1 cycle 순환 ─────────────────────────
+  // data: items[{title,desc,highlight}] 3~8, center{title,desc}?
+  function cycle(d){
+    const it=d.items, n=it.length, H=660, cx=W/2, cy=325, Rr=n<=4?215:n<=6?232:248, r=n<=5?86:n<=6?80:70;
+    const st=stage(H), g=Math.asin(Math.min(0.95,(r+12)/Rr))*180/Math.PI;
+    for(let i=0;i<n;i++){ const a=-90+360*i/n, b=a+360/n;
+      const p=q=>[cx+Rr*Math.cos(rad(q)), cy+Rr*Math.sin(rad(q))], s=p(a+g), e=p(b-g);
+      add(st,'path',{d:`M${s[0]} ${s[1]} A ${Rr} ${Rr} 0 0 1 ${e[0]} ${e[1]}`,'stroke-width':3,'marker-end':'url(#ah)'},'s-line'); }
+    if(d.center){ const cr=Math.max(78,Rr-r-46); add(st,'circle',{cx,cy,r:cr},'s-strong');
+      lab(st,cx,cy,cr*1.6,[[d.center.title,'t1'],[d.center.desc,'t2']],{cls:'onS'}); }
+    it.forEach((m,i)=>{ const a=-90+360*i/n, x=cx+Rr*Math.cos(rad(a)), y=cy+Rr*Math.sin(rad(a));
+      add(st,'circle',{cx:x,cy:y,r},m.highlight?'s-focus':'s-soft');
+      lab(st,x,y,r*1.75,[[m.tag,'t3'],[m.title,'t1s'],[m.desc,'t2']],{cls:m.highlight?'onF':''}); });
+  }
+
+  // ───────────────────────── 2 funnel 깔때기 ─────────────────────────
+  // data: stages[{label,value,note,drop}]  drop=이 단계로 넘어오며 빠진 것(강조색)
+  function funnel(d){
+    const s=d.stages, m=s.length, hh=84, gap=8, top=10, H=top+m*(hh+gap)+10, fx=450, W0=860, W1=Math.max(300,W0*0.36);
+    const st=stage(H), wAt=y=>W0-(W0-W1)*((y-top)/(m*(hh+gap)-gap));
+    s.forEach((g,i)=>{ const y0=top+i*(hh+gap), y1=y0+hh, a=wAt(y0)/2, b=wAt(y1)/2, c=heat(i,m);
+      add(st,'polygon',{points:`${fx-a},${y0} ${fx+a},${y0} ${fx+b},${y1} ${fx-b},${y1}`},c);
+      const L=lab(st,fx,(y0+y1)/2,b*2-20,[],{cls:heatTxt(c)}); const row=div(); row.style.cssText='display:flex;gap:16px;align-items:baseline;justify-content:center';
+      row.append(t('div','t1',g.label)); if(g.value!=null) row.append(t('div','tv',String(g.value))); L.append(row);
+      if(g.note){ add(st,'line',{x1:fx+b+8,y1:(y0+y1)/2,x2:fx+W0/2+60,y2:(y0+y1)/2},'s-grid'); lab(st,fx+W0/2+74,(y0+y1)/2,W-(fx+W0/2+74),[[g.note,'tx']],{anchor:'l',align:'l'}); }
+      if(g.drop){ const yy=y0-gap/2; lab(st,fx+W0/2+74,yy,W-(fx+W0/2+74),[[g.drop,'tx']],{anchor:'l',align:'l',box:'fm-accent'});
+        add(st,'line',{x1:fx+wAt(yy)/2+6,y1:yy,x2:fx+W0/2+68,y2:yy,'marker-end':'url(#aha)'},'s-accentl'); }
+    });
+  }
+
+  // ───────────────────────── 3 venn 교집합 ─────────────────────────
+  // data: sets[{title,desc}] 2~3, overlaps{"12":…,"13":…,"23":…,"123":…}
+  function venn(d){
+    const s=d.sets, n=s.length, o=d.overlaps||{}, H=660, st=stage(H), cls=['s-v1','s-v2','s-v3'];
+    if(n===2){ const r=235, c=[[W/2-155,330],[W/2+155,330]];
+      c.forEach((p,i)=>add(st,'circle',{cx:p[0],cy:p[1],r},cls[i]));
+      [[c[0][0]-r/2-35,0],[c[1][0]+r/2+35,1]].forEach(([x,i])=>lab(st,x,330,190,[[s[i].title,'t1'],[s[i].desc,'t2']]));
+      if(o['12']) lab(st,W/2,330,150,[[o['12'],'t1s']]);
+    } else { const r=212, dd=132, C=[W/2,368], dir=[-90,150,30].map(a=>[Math.cos(rad(a)),Math.sin(rad(a))]);
+      const c=dir.map(v=>[C[0]+v[0]*dd, C[1]+v[1]*dd]);
+      c.forEach((p,i)=>add(st,'circle',{cx:p[0],cy:p[1],r},cls[i]));
+      dir.forEach((v,i)=>lab(st,C[0]+v[0]*(dd+r*0.52),C[1]+v[1]*(dd+r*0.52),180,[[s[i].title,'t1'],[s[i].desc,'t2']]));
+      [['12',0,1],['13',0,2],['23',1,2]].forEach(([k,a,b])=>{ if(!o[k]) return; const vx=dir[a][0]+dir[b][0], vy=dir[a][1]+dir[b][1], L=Math.hypot(vx,vy);
+        lab(st,C[0]+vx/L*dd*1.08,C[1]+vy/L*dd*1.08,130,[[o[k],'tx']]); });
+      if(o['123']) lab(st,C[0],C[1],110,[[o['123'],'t1s']]);
+    }
+  }
+
+  // ───────────────────────── 4 quadrant 2×2 ─────────────────────────
+  // data: x{label,low,high}, y{label,low,high}, quadrants[{title,desc}] 순서 TL,TR,BL,BR,
+  //       items[{label,_x,_y,highlight}] (0~1), _focus:"TR", takeaway
+  function quadrant(d){
+    const H=660, pw=820, ph=540, side=d.takeaway?360:0, L=d.takeaway?120:(W-pw)/2+30, T=20, st=stage(H);
+    const pos=['TL','TR','BL','BR'];
+    pos.forEach((p,i)=>{ const x=L+(p[1]==='R'?pw/2:0), y=T+(p[0]==='B'?ph/2:0), R=p[1]==='R', B=p[0]==='B';
+      add(st,'rect',{x,y,width:pw/2,height:ph/2},(d._focus===p)?'s-soft':'s-faint');
+      const q=(d.quadrants||[])[i]; if(!q) return;
+      lab(st,x+(R?pw/2-18:18),y+(B?ph/2-16:16),pw/2-60,[[q.title,'t1'],[q.desc,'t3']],{anchor:(B?'b':'t')+(R?'r':'l'),align:R?'r':'l'}); });
+    add(st,'line',{x1:L+pw/2,y1:T,x2:L+pw/2,y2:T+ph},'s-grid'); add(st,'line',{x1:L,y1:T+ph/2,x2:L+pw,y2:T+ph/2},'s-grid');
+    add(st,'line',{x1:L,y1:T+ph,x2:L+pw+26,y2:T+ph,'marker-end':'url(#ah)'},'s-line');
+    add(st,'line',{x1:L,y1:T+ph,x2:L,y2:T-24,'marker-end':'url(#ah)'},'s-line');
+    lab(st,L+pw/2,T+ph+30,pw,[[d.x.label,'t1s']],{});
+    if(d.x.low) lab(st,L,T+ph+30,160,[[d.x.low,'t3']],{anchor:'l',align:'l'}); if(d.x.high) lab(st,L+pw,T+ph+30,160,[[d.x.high,'t3']],{anchor:'r',align:'r'});
+    lab(st,L-18,T+ph/2,90,[[d.y.label,'t1s']],{anchor:'r',align:'r'});
+    if(d.y.high) lab(st,L-18,T+6,90,[[d.y.high,'t3']],{anchor:'r',align:'r'}); if(d.y.low) lab(st,L-18,T+ph-6,90,[[d.y.low,'t3']],{anchor:'r',align:'r'});
+    (d.items||[]).forEach(m=>{ const x=L+m._x*pw, y=T+(1-m._y)*ph;
+      add(st,'circle',{cx:x,cy:y,r:m.highlight?11:8},m.highlight?'s-acc':'s-deep');
+      lab(st,x+16,y,210,[[m.label,m.highlight?'t1s':'tx']],{anchor:'l',align:'l'}); });
+    if(d.takeaway) lab(st,W-side/2+10,T+ph/2,side-40,[[d.takeaway,'t1s']],{box:'fm-focus'});
+  }
+
+  // ───────────────────────── 5 pyramid 위계 ─────────────────────────
+  // data: levels[{title,desc}] 위→아래
+  function pyramid(d){
+    const lv=d.levels, m=lv.length, lh=m<=4?104:88, gap=6, T=10, H=T+m*(lh+gap)+10, cx=390, BW=720, st=stage(H);
+    const wAt=y=>BW*((y-T)/(m*(lh+gap)-gap));
+    lv.forEach((v,i)=>{ const y0=T+i*(lh+gap), y1=y0+lh, a=wAt(y0)/2, b=wAt(y1)/2, c=i===0?'s-heat3':(i<m/2?'s-heat2':'s-heat1');
+      add(st,'polygon',{points:`${cx-a},${y0} ${cx+a},${y0} ${cx+b},${y1} ${cx-b},${y1}`},c);
+      const yc=i===0?y0+lh*0.66:(y0+y1)/2; lab(st,cx,yc,Math.max(120,(a+b)-30),[[v.title,i===0?'t1s':'t1']],{cls:heatTxt(c)});
+      if(v.desc){ add(st,'line',{x1:cx+b+6,y1:(y0+y1)/2,x2:cx+BW/2+50,y2:(y0+y1)/2},'s-grid');
+        lab(st,cx+BW/2+64,(y0+y1)/2,W-(cx+BW/2+64),[[v.desc,'tx']],{anchor:'l',align:'l'}); } });
+  }
+
+  // ───────────────────────── 6 concentric 동심원 ─────────────────────────
+  // data: rings[{title,desc}] 안→밖
+  function concentric(d){
+    const rg=d.rings, n=rg.length, Rm=300, H=2*Rm+30, cx=Rm+40, cy=H/2, st=stage(H);
+    const cl=i=> i===0?'s-strong': (i===n-1?'s-faint': (i===1?'s-heat2':'s-soft'));
+    for(let i=n-1;i>=0;i--) add(st,'circle',{cx,cy,r:Rm*(i+1)/n},cl(i));
+    rg.forEach((g,i)=>{ const r0=Rm*i/n, r1=Rm*(i+1)/n;
+      if(i===0) lab(st,cx,cy,r1*1.6,[[g.title,'t1']],{cls:'onS'});
+      else lab(st,cx,cy-(r0+r1)/2,2*Math.sqrt(r1*r1-((r0+r1)/2)**2)*0.9,[[g.title,'t1s']],{cls:i===1?'on2':''}); });
+    const x0=2*Rm+130, rowH=(H-40)/n;
+    rg.forEach((g,i)=>{ const y=20+rowH*i+rowH/2; add(st,'rect',{x:x0,y:y-14,width:28,height:28,rx:4},cl(i));
+      lab(st,x0+44,y,W-x0-44,[[g.title,'t1s'],[g.desc,'t2']],{anchor:'l',align:'l'}); });
+  }
+
+  // ───────────────────────── 7 hub 허브·방사 ─────────────────────────
+  // data: center{title,desc}, nodes[{title,desc}] 3~8
+  function hub(d){
+    const nd=d.nodes, n=nd.length, H=660, cx=W/2, cy=330, rx=500, ry=245, st=stage(H);
+    const pts=nd.map((_,i)=>{ const a=-90+360*i/n; return [cx+rx*Math.cos(rad(a)), cy+ry*Math.sin(rad(a))]; });
+    pts.forEach(p=>add(st,'line',{x1:cx,y1:cy,x2:p[0],y2:p[1]},'s-line'));
+    lab(st,cx,cy,270,[[d.center.title,'t1'],[d.center.desc,'t2']],{box:'fm-strong'});
+    nd.forEach((m,i)=>lab(st,pts[i][0],pts[i][1],250,[[m.title,'t1s'],[m.desc,'t2']],{box:m.highlight?'fm-focus':'fm-edge'}));
+  }
+
+  // ───────────────────────── 8 fishbone 원인 ─────────────────────────
+  // data: effect{title,desc}, categories[{title,causes[]}] 4~6
+  function fishbone(d){
+    const cs=d.categories, H=640, cy=320, x0=40, x1=W-270, st=stage(H);
+    add(st,'line',{x1:x0,y1:cy,x2:x1,y2:cy,'stroke-width':4,'marker-end':'url(#ah)'},'s-line');
+    lab(st,W-128,cy,240,[[d.effect.title,'t1'],[d.effect.desc,'t2']],{box:'fm-focus'});
+    const top=cs.filter((_,i)=>i%2===0), bot=cs.filter((_,i)=>i%2===1), dx=150, dy=240;
+    [[top,-1],[bot,1]].forEach(([grp,sg])=>{ const k=grp.length, span=(x1-x0-60);
+      grp.forEach((c,j)=>{ const xa=x0+80+dx+span*(j+0.5)/k, ya=cy, xb=xa-dx, yb=cy+sg*dy;
+        add(st,'line',{x1:xb,y1:yb,x2:xa,y2:ya},'s-line');
+        lab(st,xb,yb+sg*22,null,[[c.title,'t1s']],{box:'fm-pill'}).style.whiteSpace='nowrap';
+        const cc=c.causes||[]; cc.forEach((z,q)=>{ const f=(q+1)/(cc.length+1), px=xb+(xa-xb)*f, py=yb+(ya-yb)*f;
+          add(st,'line',{x1:px-70,y1:py,x2:px,y2:py},'s-thin'); lab(st,px-78,py,190,[[z,'tx']],{anchor:'r',align:'r'}); }); }); });
+  }
+
+  // ───────────────────────── 9 staircase 계단 ─────────────────────────
+  // data: steps[{title,desc,tag}] 아래→위, goal(마지막 계단 위 깃발 글)
+  function staircase(d){
+    const sp=d.steps, n=sp.length, H=580, base=H-10, cw=(W-40)/n, sh=(H-190)/n, st=stage(H);
+    sp.forEach((s,i)=>{ const x=20+i*cw, h=120+sh*i, y=base-h, last=i===n-1;
+      add(st,'rect',{x,y,width:cw-12,height:h,rx:6},last?'s-focus':(i%2?'s-soft':'s-heat1'));
+      lab(st,x+(cw-12)/2,y+16,cw-40,[[s.tag,'t3'],[s.title,'t1'],[s.desc,'t2']],{anchor:'t',cls:last?'onF':''}); });
+    if(d.goal){ const x=20+(n-1)*cw+(cw-12)/2, y=base-(120+sh*(n-1)); lab(st,x,y-16,cw+40,[[d.goal,'t1s']],{anchor:'b',box:'fm-accent'}); }
+  }
+
+  // ───────────────────────── 10 before-after 전후 ─────────────────────────
+  // data: before{title,items[]}, after{title,items[]}, levers[] (전환 수단)
+  function beforeAfter(d){
+    const row=div(); row.style.cssText='display:flex;align-items:stretch;gap:0;width:'+W+'px;margin:0 auto'; root.append(row);
+    const card=(o,cls)=>{ const c=div(cls); c.style.cssText='flex:0 0 470px;padding:0;overflow:hidden;display:flex;flex-direction:column';
+      const h=div(cls==='fm-muted'?'':'fm-focus'); h.style.cssText='border-radius:0;box-shadow:none;padding:14px 20px;'+(cls==='fm-muted'?'background:var(--neutral-head);':'');
+      const ht=t('div','t1',o.title); if(cls==='fm-muted') ht.style.color='var(--strong-ink)'; h.append(ht); c.append(h);
+      const b=bullets(o.items); b.style.cssText+='padding:18px 22px;font-size:calc(18px * var(--fts));line-height:1.7'; c.append(b); return c; };
+    row.append(card(d.before,'fm-muted'));
+    const mid=div(); mid.style.cssText='flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:0 10px';
+    const arr=div('fm-soft'); arr.style.cssText='width:100%;min-height:78%;clip-path:polygon(0 12%,78% 12%,78% 0,100% 50%,78% 100%,78% 88%,0 88%);border:none;display:flex;flex-direction:column;justify-content:center;padding:40px 110px 40px 26px;border-radius:0';
+    (d.levers||[]).forEach(s=>arr.append(t('div','t1s',s))); if(d.lever_title) arr.prepend(t('div','t3',d.lever_title));
+    arr.querySelectorAll('.t1s').forEach(e=>e.style.margin='5px 0'); mid.append(arr); row.append(mid);
+    row.append(card(d.after,'fm-edge'));
+  }
+
+  // ───────────────────────── 11 waterfall 증감 ─────────────────────────
+  // data: start{label,value}, steps[{label,value}] (±), end{label,value?}, unit
+  function waterfall(d){
+    const H=560, T=40, PH=400, st=stage(H), sp=d.steps, n=sp.length+2, cw=(W-60)/n, bw=Math.min(120,cw*0.6), u=d.unit||'';
+    let run=d.start.value; const bars=[{lb:d.start.label,y0:0,y1:run,c:'s-heat2',v:run}];
+    sp.forEach(s=>{ const a=run; run+=s.value; bars.push({lb:s.label,y0:Math.min(a,run),y1:Math.max(a,run),c:s.value>=0?'s-deep':'s-acc',v:(s.value>0?'+':'')+s.value,top:Math.max(a,run),lvl:run}); });
+    // 끝값을 적었으면 '시작 + 증감'과 맞아야 한다 — 틀린 합계를 그림이 조용히 그리지 않게 멈춘다
+    if(d.end&&d.end.value!=null&&Math.abs(d.end.value-run)>1e-9) throw new Error('합계 불일치: 시작+증감='+run+', end.value='+d.end.value);
+    const endv=d.end&&d.end.value!=null?d.end.value:run; bars.push({lb:(d.end||{}).label||'합계',y0:0,y1:endv,c:'s-strong',v:endv});
+    // 증감이 총액에 비해 작으면 축 하단을 생략한다 (≈ 표시) — 0부터 그리면 증감이 안 보인다
+    const lvls=[]; bars.forEach((b,i)=>{ if(i===0||i===bars.length-1) lvls.push(b.y1); else lvls.push(b.y0,b.y1); });
+    const hi=Math.max(...lvls), lo=Math.min(...lvls), cut=lo>0 && (hi-lo)<hi*0.5;
+    const fl=cut? Math.max(0, lo-(hi-lo)*1.2) : 0, mx=fl+(hi-fl)*1.12, Y=v=>T+PH-((v-fl)/(mx-fl))*PH;
+    bars.forEach(b=>{ if(b.y0===0) b.y0=fl; });
+    add(st,'line',{x1:20,y1:T+PH,x2:W-20,y2:T+PH},'s-axis');
+    if(cut){ [0,bars.length-1].forEach(i=>{ const x=30+i*cw+(cw-bw)/2; add(st,'path',{d:`M${x-6} ${T+PH-26} l${bw+12} -10 M${x-6} ${T+PH-16} l${bw+12} -10`,'stroke':'var(--bg)','stroke-width':6,fill:'none'});
+        add(st,'path',{d:`M${x-6} ${T+PH-26} l${bw+12} -10 M${x-6} ${T+PH-16} l${bw+12} -10`},'s-thin'); });
+      lab(st,24,T+PH+44,300,[['※ 세로축 하단 일부 생략','t3']],{anchor:'l',align:'l'}); }
+    bars.forEach((b,i)=>{ const x=30+i*cw+(cw-bw)/2;
+      add(st,'rect',{x,y:Y(b.y1),width:bw,height:Math.max(2,Y(b.y0)-Y(b.y1))},b.c);
+      lab(st,x+bw/2,Y(b.y1)-8,cw,[[String(b.v)+u,'t1s']],{anchor:'b'});
+      lab(st,x+bw/2,T+PH+12,cw-8,[[b.lb,'tx']],{anchor:'t'});
+      if(i<bars.length-1){ const lv=i===0?b.y1:(b.lvl!=null?b.lvl:b.y1); add(st,'line',{x1:x+bw,y1:Y(lv),x2:x+cw,y2:Y(lv)},'s-grid'); } });
+  }
+
+  // ───────────────────────── 12 iceberg 드러난/숨은 ─────────────────────────
+  // data: above{title,items[]}, below{title,items[]}
+  function iceberg(d){
+    const H=680, wl=210, cx=430, st=stage(H);
+    add(st,'rect',{x:0,y:wl,width:W,height:H-wl},'s-water');
+    add(st,'line',{x1:0,y1:wl,x2:W,y2:wl},'s-dash');
+    add(st,'polygon',{points:`${cx-120},${wl} ${cx-60},${wl-120} ${cx-10},${wl-175} ${cx+45},${wl-110} ${cx+110},${wl-60} ${cx+140},${wl}`},'s-edge');
+    add(st,'polygon',{points:`${cx-120},${wl} ${cx+140},${wl} ${cx+260},${wl+140} ${cx+300},${wl+300} ${cx+150},${H-20} ${cx-160},${H-35} ${cx-300},${wl+320} ${cx-250},${wl+130}`},'s-heat2');
+    const a=lab(st,cx+230,wl-100,560,[[d.above.title,'t1']],{anchor:'l',align:'l'}); a.append(bullets(d.above.items));
+    const b=lab(st,cx,wl+(H-wl)/2,430,[[d.below.title,'t1']],{align:'l',cls:'on2'}); b.append(bullets(d.below.items)); b.querySelector('.bul').style.fontSize='calc(17px * var(--fts))';
+    b.querySelector('.bul').style.color='var(--heat-2-ink)';
+    if(d.note) lab(st,W-20,H-20,380,[[d.note,'t1s']],{anchor:'r',box:'fm-strong',cls:''}).style.transform='translate(-100%,-100%)';
+  }
+
+  // ───────────────────────── 13 swimlane 주체별 흐름 ─────────────────────────
+  // data: lanes[], phases[]?, steps[{text,_lane,_col,highlight}] (배열 순서대로 화살표)
+  function swimlane(d){
+    const ln=d.lanes, sp=d.steps, C=Math.max(...sp.map(s=>s._col))+1, LW=160, top=d.phases?46:0, lh=128, H=top+ln.length*lh, cw=(W-LW)/C, st=stage(H);
+    if(d.phases) d.phases.forEach((p,i)=>lab(st,LW+cw*i+cw/2,20,cw-10,[[p,'t1s']]));
+    ln.forEach((l,i)=>{ const y=top+i*lh; add(st,'rect',{x:LW,y,width:W-LW,height:lh},i%2?'s-faint':'s-card');
+      add(st,'rect',{x:0,y,width:LW-8,height:lh-4,rx:6},'s-strong'); lab(st,(LW-8)/2,y+lh/2,LW-24,[[l,'t1s']],{cls:'onS'}); });
+    for(let i=1;i<C;i++) add(st,'line',{x1:LW+cw*i,y1:top,x2:LW+cw*i,y2:H},'s-grid');
+    const boxes=sp.map(s=>lab(st,LW+cw*s._col+cw/2,top+s._lane*lh+lh/2,Math.min(230,cw-44),[[s.text,'tx']],{box:s.highlight?'fm-focus':'fm-edge'}));
+    after.push(()=>{ for(let i=0;i<sp.length-1;i++){ const a=rel(boxes[i],st), b=rel(boxes[i+1],st);
+      if(Math.abs(a.cy-b.cy)<2) add(st,'line',{x1:a.r,y1:a.cy,x2:b.l-4,y2:b.cy,'marker-end':'url(#ah)'},'s-line');
+      else if(Math.abs(a.cx-b.cx)<2) add(st,'line',{x1:a.cx,y1:a.cy<b.cy?a.b:a.t,x2:b.cx,y2:a.cy<b.cy?b.t-4:b.b+4,'marker-end':'url(#ah)'},'s-line');
+      else { const mx=(a.r+b.l)/2; add(st,'path',{d:`M${a.r} ${a.cy} H${mx} V${b.cy} H${b.l-4}`,'marker-end':'url(#ah)'},'s-line'); } } });
+  }
+
+  // ───────────────────────── 14 logic-tree 이슈 트리 ─────────────────────────
+  // data: root{title,desc}, children[{title,children[{title}]}]
+  function logicTree(d){
+    const ch=d.children, leaves=ch.reduce((s,c)=>s+Math.max(1,(c.children||[]).length),0), rh=66, H=leaves*rh+20, st=stage(H);
+    const X0=150, X1=560, X2=1030; let row=0; const l1=[];
+    ch.forEach(c=>{ const k=Math.max(1,(c.children||[]).length), ys=[]; for(let j=0;j<k;j++) ys.push(10+(row+j)*rh+rh/2);
+      const yc=(ys[0]+ys[ys.length-1])/2; const b1=lab(st,X1,yc,270,[[c.title,'t1s'],[c.desc,'t3']],{box:'fm-soft'});
+      const kids=(c.children||[]).map((g,j)=>lab(st,X2,ys[j],360,[[g.title,'tx']],{box:'fm-card',align:'l'}));
+      l1.push({b1,kids}); row+=k; });
+    const rb=lab(st,X0,H/2,250,[[d.root.title,'t1'],[d.root.desc,'t2']],{box:'fm-strong'});
+    after.push(()=>{ const r=rel(rb,st);
+      l1.forEach(({b1,kids})=>{ const a=rel(b1,st), mx=(r.r+a.l)/2; add(st,'path',{d:`M${r.r} ${r.cy} H${mx} V${a.cy} H${a.l}`},'s-line');
+        kids.forEach(k=>{ const b=rel(k,st), m2=(a.r+b.l)/2; add(st,'path',{d:`M${a.r} ${a.cy} H${m2} V${b.cy} H${b.l}`},'s-thin'); }); }); });
+  }
+})();
+</script>
+</body>
+</html>

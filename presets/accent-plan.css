@@ -1,0 +1,126 @@
+/* =========================================================================
+   doc-figure 프리셋 — accent-plan
+   사업기획안·민간 제안용. 공공 보고서의 골격은 유지하되 채도를 한 단계 올리고
+   강조색을 경고(적)가 아니라 제안(주황)으로 바꾼다.
+
+   설계 기준
+   - gov-navy보다 밝은 네이비 — 인쇄물보다 화면·발표 자료에서 읽히는 것을 전제.
+   - --accent 를 붉은 경고색이 아닌 따뜻한 강조색으로. 기획안에서 강조는
+     '문제 지적'이 아니라 '핵심 제안'을 가리키기 때문이다.
+   - 라운드 14px. 공문서보다 부드러운 인상.
+
+   * 프리셋 규율: 토큰 '값'만 바꾸고 '이름'은 더하거나 빼지 않는다.
+   ========================================================================= */
+:root {
+  /* v2.0.1 인쇄 크기 — 16cm 폭에 넣을 때 본문 약 10pt·최소 8pt 이상 (text-scale·caption-size·src-size·title-scale·word-break) */
+  /* --- 팔레트 --- */
+  --navy-deep:   #143A7B;   /* 뱃지·헤더밴드·푸터칩·누적박스 */
+  --navy-mid:    #2557A7;   /* 보조 강조 */
+  --navy-marker: #1B4489;   /* 게이트 ▼ · 마일스톤 ◆ */
+  --bar-fill:    #E8F0FC;   /* 간트바 채움 (연) */
+  --bar-fill-2:  #D2E3F9;   /* 간트바 채움 (진) */
+  --bar-border:  #3E76C9;   /* 간트바 테두리 */
+  --grid-line:   #DCE3ED;   /* 월 구분 점선·격자 */
+  --ink:         #17263F;   /* 본문 텍스트 */
+  --ink-soft:    #5C6B85;   /* 부제·캡션 */
+  --bg:          #FFFFFF;   /* 배경 (항상 흰색) */
+  --chip-track:  #D2E3F9;   /* 도넛 트랙 */
+
+  /* --- 판정·비교 --- */
+  --heat-1:      #E8F0FC;   /* 히트맵 1단계(약) */
+  --heat-2:      #8FB3E8;   /* 히트맵 2단계(중) */
+  --heat-3:      #143A7B;   /* 히트맵 3단계(강) */
+  --heat-1-ink:  #17263F;
+  --heat-2-ink:  #0E2350;
+  --heat-3-ink:  #FFFFFF;
+  --neutral-fill:#F3F5F8;   /* 기준(무채색) 열·보조 바탕 */
+  --neutral-line:#C8D0DC;
+  --neutral-ink: #4A5668;
+  --accent:      #C2621B;   /* 핵심 제안 강조 (경고 아님) */
+  --accent-soft: #FCEFE2;
+  --track-1:     #143A7B;   /* 타임라인 축1 */
+  --track-2:     #5B84BE;   /* 타임라인 축2 */
+  --track-3:     #A9BAD2;   /* 타임라인 축3 */
+  /* --- 보조 선·바탕 (템플릿 하드코딩 제거분) --- */
+  --neutral-head:#5A6478;
+  --line-soft:   #C7D8F4;
+  --fill-faint:  #F5F8FE;
+  --line-track:  #C6CFDD;
+
+
+  /* --- 타이포 (프리셋 불변) --- */
+  --font: "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;
+  --w-title: 800;
+  --w-strong: 700;
+  --w-label: 600;
+  --w-body: 500;
+
+  /* --- 형태 --- */
+  --radius-bar: 14px;
+  --radius-box: 14px;
+  --radius-badge: 14px;
+  --shadow: 0 3px 10px rgba(20,58,123,0.13);
+
+  /* --- 형태 (v1.1 — 색이 아니라 '생김새'를 바꾸는 토큰) ---
+     기본값은 v1.0 모양과 같다. 값을 바꾸면 11종이 한꺼번에 다른 인상이 된다. */
+  --font-title:  "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;   /* 제목 글꼴 — 본문(--font)과 따로 */
+  --title-align: center;       /* center | left */
+  --title-scale: 1.3;            /* 제목 크기 배율 */
+  --title-ink:   var(--navy-deep);
+  --title-track: -1px;         /* 제목 자간 */
+  --title-deco:  block;        /* 제목 양옆 장식선: block | none */
+  --title-under: 0 solid transparent;   /* 제목 아래 가로줄 (border 값) */
+  --title-under-gap: 0px;
+  --caption-align: center;
+  --caption-ink: var(--ink);
+  --strong-fill: var(--navy-deep);      /* 강조 상자(헤더 띠·뿌리 상자·최종 단계) 채움 */
+  --strong-ink:  #FFFFFF;
+  --strong-ink-soft: var(--bar-fill-2);
+  --strong-ring: 0 0 0 0 transparent;   /* 강조 상자 안쪽 테두리 — 외곽선형이면 inset 0 0 0 2px 색 */
+  --card-fill:   #FFFFFF;               /* 일반 카드 바탕 */
+  --badge-shape: 50%;                   /* 번호 뱃지·단계 원 — 50%=원, 4px=사각 */
+  --radius-pill: 999px;                 /* 알약형 칩 — 각지게 하려면 작은 값 */
+  --word-break: keep-all;                 /* keep-all = 한국어 낱말 단위 줄바꿈 */
+  --shadow-hub:  0 4px 14px rgba(20,58,123,.25);   /* 논증 도해 중심 상자 그림자 */
+
+  /* --- 편집 (v1.3 — 보고서·도판식 배치. 기본값은 v1.2 와 같다) --- */
+  --fig-display: block;        /* flex 로 두면 캡션을 제목 위로 올릴 수 있다 */
+  --caption-order: 0;          /* -1 = 그림 번호·제목을 맨 위로 (국내 보고서 관례) */
+  --caption-mt: 1;             /* 캡션 위 여백 배율 (위로 올릴 땐 0) */
+  --caption-mb: 0px;
+  --caption-size: 30px;
+  --caption-weight: var(--w-label);
+  --src-size: 27px;            /* 자료·주 줄 */
+  --src-gap: 12px;
+  --title-tag: none;           /* block = 제목 위 짧은 색 막대 (도판식 표식) */
+  --title-tag-color: var(--accent);
+  --accent-line: dashed;       /* 강조(탈락·병목) 상자 테두리: dashed | solid */
+  --accent-fill: var(--accent-soft);   /* 강조 상자 바탕 — transparent 면 글자와 선만 */
+  --focus-fill:  var(--strong-fill);     /* highlight 로 지정한 '제목이 말하는 그 요소' — 구조용 강조와 분리 */
+  --focus-ink:   var(--strong-ink);
+  --focus-ink-soft: var(--strong-ink-soft);
+  --focus-ring:  var(--strong-ring);
+  --trim-x:      auto;         /* none = PNG 좌우 여백을 자르지 않는다 — 문서 속 그림 폭을 모두 같게 */
+  --text-scale:  2.0;            /* 도식 안 글자 배율 (제목은 --title-scale, 캡션·자료는 --caption-size·--src-size) */
+  --ornament:    flex;         /* none = 뜻 없이 겹치는 장식(중복 번호 뱃지 등)을 걷는다 */
+
+  /* --- board (v2.0) — 뜻으로 고르는 색 6가지 + 조립 부품 --- */
+  --tone-main: #143A7B; --tone-main-tint: #E8EFFA; --tone-main-line: #9FB5DB;
+  --tone-sub: #2557A7; --tone-sub-tint: #E8EFFA; --tone-sub-line: #9FB6DB;
+  --tone-go: #197D86; --tone-go-tint: #E8F8FA; --tone-go-line: #9FD6DB;
+  --tone-wait: #C2621B; --tone-wait-tint: #FAF0E8; --tone-wait-line: #DBB89F;
+  --tone-stop: #B03A3F; --tone-stop-tint: #F8EAEB; --tone-stop-line: #D7A2A4;
+  --tone-mute: #6B778C; --tone-mute-tint: #EFF0F3; --tone-mute-line: #B6BBC4;
+  --board-font: "Pretendard", "Pretendard Variable", "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;
+  --board-fs: 22px;                 /* 본문 기준 글자 — 그림 폭 1500px 의 1.5% (16cm 삽입 시 약 6.6pt) */
+  --board-line: #C8D2E4;
+  --board-panel: #F4F6FB;
+  --board-chip: #E6EBF4;
+  --board-radius: 10px;
+  --board-icon-stroke: 1.8;
+  --board-link-w: 2.6px;
+  --board-band-label: rgba(0, 0, 0, 0.18);
+  --board-bar-sep: rgba(255, 255, 255, 0.35);
+  --board-step-mid: #C9D7ED;
+  /* --- /board --- */
+}

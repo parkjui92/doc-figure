@@ -1,0 +1,86 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {
+    "message": "개별 민원 대응에서 데이터 기반의 상시 모니터링·정책 연계로 바꾼다",
+    "relation": "전환(현재 → 변화)",
+    "why": "왼쪽 회색 현황과 오른쪽 짙은 변화가 마주 보며 '무엇이 달라지는가'를 짝으로 보인다"
+  },
+  "kicker": "제안 개요",
+  "title": "개별 민원 대응에서 데이터 기반 모니터링·정책 연계로",
+  "body": [
+    {
+      "row": [
+        {
+          "group": "현재 상황",
+          "group_sub": "민원이 들어온 뒤 개별 대응",
+          "tone": "mute",
+          "style": "soft",
+          "body": [
+            {
+              "title": "분산된 민원 정보",
+              "sub": "구청·콜센터·앱에 흩어져 비교 불가",
+              "icon": "files",
+              "layout": "side",
+              "tone": "mute"
+            },
+            {
+              "title": "부분적인 분류 체계",
+              "sub": "부서마다 기준이 달라 겹치거나 빠짐",
+              "icon": "layout-grid",
+              "layout": "side",
+              "tone": "mute"
+            },
+            {
+              "title": "모니터링 기능 부재",
+              "sub": "재발·확산을 미리 알 수단이 없음",
+              "icon": "eye",
+              "layout": "side",
+              "tone": "stop"
+            }
+          ],
+          "w": 1
+        },
+        {
+          "group": "본 연구가 만드는 변화",
+          "group_sub": "데이터로 쌓고 정책으로 잇는 체계",
+          "tone": "main",
+          "body": [
+            {
+              "title": "민원 → 문제 유형 구조화",
+              "sub": "여러 창구의 민원을 하나의 유형 DB로",
+              "icon": "database",
+              "layout": "side",
+              "accent": "left"
+            },
+            {
+              "title": "공통 분류 체계",
+              "sub": "현장 검증을 거친 분류표",
+              "icon": "sitemap",
+              "layout": "side",
+              "accent": "left"
+            },
+            {
+              "title": "상시 모니터링·조기경보",
+              "sub": "지역별 추세를 주기적으로 갱신",
+              "icon": "alert-triangle",
+              "layout": "side",
+              "accent": "left",
+              "tone": "go"
+            }
+          ],
+          "w": 1.15
+        }
+      ],
+      "join": "arrow",
+      "gap": 22
+    },
+    {
+      "band": "개별 민원의 사후 처리를 넘어, 생활 불편을 지속적으로 관찰·축적하고 정책으로 연결",
+      "label": "기대효과",
+      "icon": "target",
+      "style": "soft"
+    }
+  ],
+  "source": "연구진 작성"
+}

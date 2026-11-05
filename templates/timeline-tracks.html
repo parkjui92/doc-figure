@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+/* 글자 배율 상한 — 좌표 고정 배치라 글자가 커지면 서로 겹친다. 큰 글씨가 필요하면 가로 쪽(print_cm 24)으로 넣거나 board-roadmap 을 쓴다. v2.0.1 */
+#figure { --fts: min(var(--text-scale), 1.3); }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:36px 40px 30px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:22px; }
+.hd h1 { font-size:calc(34px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); }
+.hd .sub { margin-top:10px; font-size:calc(19px * var(--fts)); font-weight:var(--w-label); color:var(--ink-soft); }
+
+.plot { position:relative; }
+.gridlayer { position:absolute; top:0; bottom:0; left:78px; right:0; z-index:0; }
+.gridlayer .gl { position:absolute; top:0; bottom:0; width:0; border-left:1px dashed var(--grid-line); }
+.gridlayer .gl.major { border-left:1px dashed var(--line-track); }
+
+.track { display:flex; align-items:stretch; position:relative; z-index:1; margin-bottom:14px; }
+.tname { flex:0 0 78px; display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
+.tname span { display:inline-block; writing-mode:vertical-rl; text-orientation:upright;
+  font-size:calc(20px * var(--fts)); font-weight:var(--w-title); letter-spacing:3px; color:#fff;
+  padding:9px 5px; border-radius:max(0px, calc(var(--radius-box) - 3px)); }
+.tbody { flex:1; position:relative; }
+.axisline { position:absolute; left:0; right:0; top:20px; border-radius:3px; }
+.dot { position:absolute; top:20px; width:14px; height:14px; border-radius:50%;
+  transform:translate(-50%,-50%); background:var(--bg); }
+.spanbar { position:absolute; top:20px; height:8px; transform:translateY(-50%); border-radius:5px; }
+.conn { position:absolute; width:2px; }
+.nbox { position:absolute; background:var(--card-fill); border:1.5px solid var(--grid-line);
+  border-radius:max(0px, calc(var(--radius-box) - 3px)); padding:8px 12px 9px; box-shadow:var(--shadow);
+  display:flex; align-items:center; gap:10px; }
+.nbox .nl { font-size:calc(19px * var(--fts)); font-weight:var(--w-strong); color:var(--ink); line-height:1.28; white-space:pre-line; }
+.nbox .ny { flex:0 0 auto; font-size:calc(16px * var(--fts)); font-weight:var(--w-title); letter-spacing:.2px;
+  white-space:nowrap; padding-right:10px; border-right:1.5px solid var(--grid-line); }
+
+.ruler { position:relative; height:34px; margin-left:78px; border-top:2px solid var(--grid-line); }
+.ruler .yl { position:absolute; top:8px; transform:translateX(-50%); font-size:calc(15px * var(--fts));
+  font-weight:var(--w-label); color:var(--ink-soft); white-space:nowrap; }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(22px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE=/*__FIGURE_DATA__*/ null; const ICONS=/*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  const TONE={1:'var(--track-1)',2:'var(--track-2)',3:'var(--track-3)'};
+  const LANE_H=46, TOP=20;
+
+  if(F.title){ const hd=div('hd'); hd.append(t('h1',null,F.title));
+    if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd); }
+
+  const ax=F.axis, span=ax.end-ax.start;
+  const pct=y=>((y-ax.start)/span*100);
+
+  const plot=div('plot');
+  const grid=div('gridlayer');
+  for(let y=ax.start;y<=ax.end;y+=(ax.step||5)){
+    const g=div('gl'); g.style.left=pct(y)+'%'; grid.append(g);
+  }
+  plot.append(grid);
+  root.append(plot);   // 실측(offsetHeight) 전에 문서에 연결되어야 함
+
+  F.tracks.forEach(TR=>{
+    const lv=TR._tone||1, col=TONE[lv]||TONE[1];
+    const row=div('track'), nm=div('tname'), sp=document.createElement('span');
+    sp.textContent=TR.name; sp.style.background=col; nm.append(sp);
+    const body=div('tbody');
+    const line=div('axisline');
+    line.style.height=(lv===1?4:3)+'px'; line.style.background=col;
+    line.style.transform='translateY(-50%)';
+    body.append(line);
+
+    const placed=[];
+    (TR.nodes||[]).forEach(n=>{
+      const lane=n._lane||0;
+      const anchorYear=(n.to!=null && n._anchor==='start')?n.at:(n.to!=null?n.to:n.at);
+      const ax0=pct(n.at), ax1=n.to!=null?pct(n.to):null, axA=pct(anchorYear);
+
+      if(ax1!=null){
+        const b=div('spanbar'); b.style.left=ax0+'%'; b.style.width=(ax1-ax0)+'%';
+        b.style.background=col; b.style.opacity=.55; body.append(b);
+        [ax0,ax1].forEach(p=>{const d=div('dot');d.style.left=p+'%';
+          d.style.border='4px solid '+col; body.append(d);});
+      } else {
+        const d=div('dot'); d.style.left=ax0+'%'; d.style.border='4px solid '+col; body.append(d);
+      }
+
+      const w=n._w||190;
+      const c=div('conn'); c.style.left='calc('+axA+'% - 1px)';
+      c.style.top=(TOP+6)+'px';
+      c.style.background=col; c.style.opacity=.65; body.append(c);
+
+      const bx=div('nbox'); bx.style.width=w+'px';
+      bx.style.borderLeft='4px solid '+col;
+      if((n._align||'end')==='end'){ bx.style.left='calc('+axA+'% - '+w+'px)'; }
+      else if(n._align==='center'){ bx.style.left='calc('+axA+'% - '+(w/2)+'px)'; }
+      else { bx.style.left=axA+'%'; }
+      if(n.year){ const yy=t('div','ny',n.year); yy.style.color=col; bx.append(yy); }
+      bx.append(t('div','nl',n.label));
+      body.append(bx);
+      placed.push({el:bx, conn:c, lane:lane});
+    });
+    row.append(nm,body); plot.append(row);
+    // 실측 기반 레인 패킹 — 박스 높이가 달라도 겹치지 않게 레인 간격을 계산
+    const laneH=[]; placed.forEach(p=>{ laneH[p.lane]=Math.max(laneH[p.lane]||0,p.el.offsetHeight); });
+    const laneTop=[]; let acc=TOP+18;
+    for(let i=0;i<laneH.length;i++){ laneTop[i]=acc; acc+=(laneH[i]||40)+9; }
+    placed.forEach(p=>{ p.el.style.top=laneTop[p.lane]+'px';
+      p.conn.style.height=(laneTop[p.lane]-TOP-6)+'px'; });
+    body.style.height=(acc+2)+'px';
+  });
+
+  const rl=div('ruler');
+  for(let y=ax.start;y<=ax.end;y+=(ax.step||5)){
+    const l=div('yl'); l.style.left=pct(y)+'%'; l.textContent=String(y); rl.append(l);
+  }
+  plot.append(rl);
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+
+  window.__RENDER_DONE__=true;
+  function div(c){const e=document.createElement('div');if(c)e.className=c;return e;}
+  function t(tag,c,txt){const e=document.createElement(tag);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {
+    "message": "세 가지 근거에서 나온 후보를 한 번 검토해 세 갈래로 나누고, 선정은 전문기관이 한다",
+    "relation": "수렴 → 판정 → 분기",
+    "why": "세 칸이 한 띠로 모였다가 다시 세 칸으로 갈라지는 모양이 '모아서 거른다'를 보인다"
+  },
+  "header": "bar",
+  "fignum": "그림 3",
+  "title": "도시 계획·시민 수요 기반 서비스 후보 도출과 선정",
+  "body": [
+    {
+      "row": [
+        {
+          "id": "s1",
+          "title": "도시 기본계획",
+          "sub": "정책 목표·대상 지역·추진 시점",
+          "icon": "timeline",
+          "fill": "tint",
+          "layout": "side"
+        },
+        {
+          "id": "s2",
+          "title": "시민 제안",
+          "sub": "불편 사항·이용 장소·서비스 공백",
+          "icon": "clipboard-list",
+          "fill": "tint",
+          "layout": "side"
+        },
+        {
+          "id": "s3",
+          "title": "전문가·현장 보완",
+          "sub": "제안이 비어 있는 지역 발굴",
+          "icon": "zoom-check",
+          "fill": "tint",
+          "layout": "side"
+        }
+      ],
+      "gap": 18
+    },
+    {
+      "row": [
+        {
+          "id": "arch",
+          "title": "총괄 기관",
+          "sub": "조사·분석 및 아카이브 정보 제공",
+          "icon": "database",
+          "layout": "side",
+          "w": 380
+        },
+        {
+          "id": "rev",
+          "group": "서비스 후보 검토",
+          "tone": "go",
+          "body": [
+            {
+              "chips": [
+                "정책 목표 기여",
+                "추가 개발 필요",
+                "기존 사업 중복",
+                "수요 구체화 수준"
+              ],
+              "check": true,
+              "tone": "go",
+              "cols": 2
+            }
+          ]
+        }
+      ],
+      "gap": 30,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "id": "o1",
+          "head": "실증 후보",
+          "title": "새 서비스 실증",
+          "sub": "효과 가설 제시 / 운영 방식 미확정",
+          "align": "center",
+          "icon": "bulb",
+          "layout": "stack"
+        },
+        {
+          "id": "o2",
+          "head": "확산 후보",
+          "title": "검증된 서비스 확산",
+          "sub": "적용 지역·운영 기준 구체화",
+          "align": "center",
+          "icon": "settings",
+          "layout": "stack",
+          "tone": "sub"
+        },
+        {
+          "id": "o3",
+          "head": "관찰 대상",
+          "title": "수요·효과 불확실",
+          "sub": "정보 보완·계획 갱신 후 재검토",
+          "align": "center",
+          "icon": "binoculars",
+          "layout": "stack",
+          "tone": "mute"
+        }
+      ],
+      "gap": 22
+    },
+    {
+      "id": "inst",
+      "band": "후보 검토자료·가용예산 확인  →  공모·평가·선정  →  지원범위 결정",
+      "label": "전문기관",
+      "icon": "building-bank",
+      "style": "line",
+      "label_w": 250
+    }
+  ],
+  "gap": 34,
+  "links": [
+    {
+      "from": "s1",
+      "to": "rev"
+    },
+    {
+      "from": "s2",
+      "to": "rev"
+    },
+    {
+      "from": "s3",
+      "to": "rev"
+    },
+    {
+      "from": "arch",
+      "to": "rev",
+      "tone": "main"
+    },
+    {
+      "from": "rev",
+      "to": "o1",
+      "tone": "go"
+    },
+    {
+      "from": "rev",
+      "to": "o2",
+      "tone": "go"
+    },
+    {
+      "from": "rev",
+      "to": "o3",
+      "tone": "go"
+    },
+    {
+      "from": "o1",
+      "to": "inst",
+      "tone": "main"
+    },
+    {
+      "from": "o2",
+      "to": "inst",
+      "tone": "main"
+    },
+    {
+      "from": "o3",
+      "to": "s3",
+      "from_side": "right",
+      "to_side": "right",
+      "via": "right",
+      "tone": "mute",
+      "label": "수요 갱신",
+      "dash": true
+    }
+  ],
+  "source": "연구진 작성",
+  "lane_r": 110
+}

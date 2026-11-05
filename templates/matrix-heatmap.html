@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 40px 30px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:20px; }
+.hd h1 { font-size:calc(34px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); }
+
+/* --- 상단 방향 화살표 --- */
+.arrowrow { display:flex; align-items:center; margin-bottom:10px; }
+.arrowrow .sp { flex:0 0 auto; }
+.arrowrow .arw { flex:0 0 auto; position:relative; height:34px; display:flex; align-items:center; justify-content:center; }
+.arrowrow .arw::before { content:""; position:absolute; left:6px; right:22px; top:50%;
+  height:3px; background:var(--navy-mid); border-radius:2px; }
+.arrowrow .arw::after { content:""; position:absolute; right:2px; top:50%; transform:translateY(-50%);
+  border-left:20px solid var(--navy-mid); border-top:10px solid transparent; border-bottom:10px solid transparent; }
+.arrowrow .arw span { position:relative; background:var(--bg); padding:0 16px; font-size:calc(19px * var(--text-scale));
+  font-weight:var(--w-title); color:var(--navy-mid); letter-spacing:.5px; }
+
+/* --- 헤더 --- */
+.head { display:flex; align-items:stretch; margin-bottom:4px; }
+.head .h { display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:11px 8px; border-radius:max(0px, calc(var(--radius-box) - 3px)) max(0px, calc(var(--radius-box) - 3px)) 0 0; }
+.head .h.navy { background:var(--strong-fill); color:var(--strong-ink); box-shadow:var(--strong-ring); }
+.head .h.neu  { background:var(--neutral-head); color:#fff; }
+.head .h .hn { font-size:calc(21px * var(--text-scale)); font-weight:var(--w-title); letter-spacing:.3px; }
+.head .h .ht { margin-top:4px; font-size:calc(14px * var(--text-scale)); font-weight:var(--w-label);
+  background:rgba(255,255,255,.22); border-radius:var(--radius-pill); padding:2px 12px; }
+
+/* --- 격자 --- */
+.group { display:flex; align-items:stretch; margin-bottom:4px; }
+.band { flex:0 0 auto; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  background:var(--navy-mid); color:#fff; border-radius:max(0px, calc(var(--radius-box) - 4px)); margin-right:4px; }
+.band span { writing-mode:vertical-rl; text-orientation:upright; font-size:calc(15px * var(--text-scale));
+  font-weight:var(--w-title); letter-spacing:1px; line-height:1; }
+.grows { flex:1; display:flex; flex-direction:column; gap:4px; }
+.row { display:flex; align-items:stretch; }
+.row.emph { outline:3px solid var(--navy-deep); outline-offset:2px; border-radius:3px; }
+.rlabel { flex:0 0 auto; min-height:62px; display:flex; align-items:center; padding:10px 12px;
+  background:var(--bar-fill); border-left:4px solid var(--bar-border); border-radius:max(0px, calc(var(--radius-box) - 6px));
+  font-size:calc(19px * var(--text-scale)); font-weight:var(--w-strong); color:var(--navy-deep); line-height:1.25; margin-right:4px; }
+.base { flex:0 0 auto; min-height:62px; display:flex; align-items:center; padding:10px 13px;
+  white-space:pre-line;
+  background:var(--neutral-fill); border:1px solid var(--neutral-line); border-radius:max(0px, calc(var(--radius-box) - 6px));
+  font-size:calc(18px * var(--text-scale)); font-weight:var(--w-body); color:var(--neutral-ink); line-height:1.3; margin-right:4px; }
+.cell { flex:0 0 auto; min-height:62px; display:flex; align-items:center; justify-content:center; text-align:center;
+  white-space:pre-line;
+  padding:10px 6px; border-radius:max(0px, calc(var(--radius-box) - 6px)); font-size:calc(19px * var(--text-scale)); font-weight:var(--w-strong);
+  line-height:1.25; margin-right:4px; }
+.cell:last-child { margin-right:0; }
+.cell.l1 { background:var(--heat-1); color:var(--heat-1-ink); border:1px solid var(--line-soft); }
+.cell.l2 { background:var(--heat-2); color:var(--heat-2-ink); }
+.cell.l3 { background:var(--heat-3); color:var(--heat-3-ink); }
+
+/* --- 범례 --- */
+.legend { display:flex; align-items:center; gap:26px; margin-top:18px; padding-top:14px;
+  border-top:1.5px solid var(--grid-line); }
+.legend .li { display:flex; align-items:center; gap:9px; font-size:calc(17px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink); }
+.legend .sw { width:30px; height:20px; border-radius:max(0px, calc(var(--radius-box) - 7px)); }
+.legend .sw.l1 { background:var(--heat-1); border:1px solid var(--line-soft); }
+.legend .sw.l2 { background:var(--heat-2); }
+.legend .sw.l3 { background:var(--heat-3); }
+.legend .sw.base { background:var(--neutral-fill); border:1px solid var(--neutral-line); }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(20px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE=/*__FIGURE_DATA__*/ null; const ICONS=/*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  const L=F.layout||{}, BAND=L.band||38, RLAB=L.rlabel||250, BASE=L.base||322, COL=L.col||270;
+
+  if(F.title){ const hd=div('hd'); hd.append(t('h1',null,F.title)); root.append(hd); }
+
+  if(F.top_arrow){
+    const r=div('arrowrow'), sp=div('sp'), aw=div('arw');
+    sp.style.width=(BAND+4+RLAB+4+BASE+4)+'px';
+    aw.style.width=(COL*3+8)+'px';
+    aw.append(t('span',null,F.top_arrow.label));
+    r.append(sp,aw); root.append(r);
+  }
+
+  const head=div('head');
+  const hsp=div('h'); hsp.style.width=(BAND+4+RLAB+4)+'px'; head.append(hsp);
+  (F.columns||[]).forEach((c,i)=>{
+    const h=div('h '+(i===0?'neu':'navy'));
+    h.style.width=(i===0?BASE:COL)+'px';
+    if(i<(F.columns.length-1)) h.style.marginRight='4px';
+    h.append(t('div','hn',c.name));
+    if(c.tag) h.append(t('div','ht',c.tag));
+    head.append(h);
+  });
+  root.append(head);
+
+  (F.groups||[]).forEach(G=>{
+    const g=div('group'), b=div('band'); b.style.width=BAND+'px';
+    b.append(t('span',null,G.band));
+    const rows=div('grows');
+    (G.rows||[]).forEach(R=>{
+      const r=div('row'+(R._emphasis?' emph':''));
+      const rl=div('rlabel'); rl.style.width=RLAB+'px'; rl.textContent=R.label; r.append(rl);
+      const bs=div('base'); bs.style.width=BASE+'px'; bs.textContent=R.base; r.append(bs);
+      (R.cells||[]).forEach(c=>{
+        const cl=div('cell l'+(c._level||1)); cl.style.width=COL+'px'; cl.textContent=c.text; r.append(cl);
+      });
+      rows.append(r);
+    });
+    g.append(b,rows); root.append(g);
+  });
+
+  if(F.legend){
+    const lg=div('legend');
+    F.legend.forEach(it=>{
+      const li=div('li'), sw=div('sw '+(it._level?('l'+it._level):'base'));
+      li.append(sw,t('span',null,it.text)); lg.append(li);
+    });
+    root.append(lg);
+  }
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+
+  window.__RENDER_DONE__=true;
+  function div(c){const e=document.createElement('div');if(c)e.className=c;return e;}
+  function t(tag,c,txt){const e=document.createElement(tag);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+})();
+</script>
+</body>
+</html>

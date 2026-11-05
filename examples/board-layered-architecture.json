@@ -1,0 +1,34 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {"message": "플랫폼은 세 계층으로 나뉘고, 아래 계층이 위 계층을 받친다", "relation": "계층 구성", "why": "왼쪽 계층 이름표와 가로 띠가 층위를, 위로 향하는 화살표가 의존 방향을 보인다"},
+  "title": "통합 플랫폼 3계층 구성도",
+  "subtitle": "응용 계층의 진단·보고 기능은 플랫폼 계층의 분석·검증을 거쳐 인프라 계층의 데이터를 쓴다",
+  "body": [
+    {"row": [
+      {"pill": "응용 계층", "shape": "square", "w": 170},
+      {"row": [
+        {"title": "진단 도구", "sub": "성과활용 진단", "icon": "clipboard-check", "layout": "side", "fill": "tint"},
+        {"title": "성과 대시보드", "sub": "지표 모니터링", "icon": "presentation-analytics", "layout": "side", "fill": "tint"},
+        {"title": "보고 자동화", "sub": "산출물 생성", "icon": "file-analytics", "layout": "side", "fill": "tint"}
+      ], "gap": 14}
+    ], "gap": 14},
+    {"row": [
+      {"pill": "플랫폼 계층", "shape": "square", "w": 170, "tone": "sub"},
+      {"row": [
+        {"title": "분석 엔진", "sub": "데이터 파이프라인", "icon": "settings-automation", "layout": "side", "fill": "tint", "tone": "sub"},
+        {"title": "검증 모듈", "sub": "품질·자문 게이트", "icon": "shield-check", "layout": "side", "fill": "tint", "tone": "sub"},
+        {"title": "메타데이터 관리", "sub": "분류체계", "icon": "sitemap", "layout": "side", "fill": "tint", "tone": "sub"}
+      ], "gap": 14}
+    ], "gap": 14},
+    {"row": [
+      {"pill": "인프라 계층", "shape": "square", "w": 170, "tone": "mute"},
+      {"row": [
+        {"title": "데이터 저장소", "sub": "통합 DB", "icon": "database", "layout": "side", "fill": "tint", "tone": "mute"},
+        {"title": "연계 자원", "sub": "외부 API · 통계", "icon": "api", "layout": "side", "fill": "tint", "tone": "mute"}
+      ], "gap": 14}
+    ], "gap": 14}
+  ],
+  "gap": 14,
+  "source": "연구진 작성"
+}

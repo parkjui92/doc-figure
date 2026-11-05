@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:36px 40px 32px; -webkit-font-smoothing:antialiased; position:relative; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:22px; }
+.hd h1 { font-size:calc(34px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); }
+
+.stage { padding-right:118px; }          /* 우측 라이저 게이트 */
+.layer { border-radius:var(--radius-box); overflow:hidden; }
+.layer .ltitle { display:flex; align-items:center; gap:12px; padding:12px 20px;
+  font-size:calc(23px * var(--text-scale)); font-weight:var(--w-title); letter-spacing:-.4px; }
+.layer .ltitle .fl { font-size:calc(15px * var(--text-scale)); font-weight:var(--w-label); padding:3px 12px; border-radius:var(--radius-pill); }
+.layer .lbody { display:flex; gap:14px; padding:16px 18px 18px; }
+.layer .blk { flex:1; background:var(--card-fill); border-radius:max(0px, calc(var(--radius-box) - 2px)); padding:16px 14px; text-align:center;
+  font-size:calc(20px * var(--text-scale)); font-weight:var(--w-strong); line-height:1.3; color:var(--ink); box-shadow:var(--shadow);
+  display:flex; align-items:center; justify-content:center; min-height:74px; white-space:pre-line; }
+
+.layer.upper { background:var(--bar-fill); border:3px dashed var(--bar-border); }
+.layer.upper .ltitle { color:var(--navy-deep); }
+.layer.upper .ltitle .fl { background:var(--bar-fill-2); color:var(--navy-mid); }
+.layer.upper .blk { border:1.5px dashed var(--bar-border); }
+
+.layer.lower { background:var(--bar-fill-2); border:4px solid var(--navy-deep); }
+.layer.lower .ltitle { background:var(--strong-fill); color:var(--strong-ink); }
+.layer.lower .ltitle .fl { background:color-mix(in srgb, var(--strong-ink) 20%, transparent); color:var(--strong-ink); }
+.layer.lower .blk { border:2px solid var(--navy-deep); color:var(--navy-deep); }
+
+.divider { display:flex; align-items:center; margin:14px 0; }
+.divider .dl { flex:1; border-top:2px dashed var(--navy-marker); opacity:.45; }
+.divider .dc { display:flex; margin:0 18px; border:2.5px solid var(--navy-deep);
+  border-radius:var(--radius-pill); overflow:hidden; box-shadow:var(--shadow); }
+.divider .dc .a { padding:8px 20px; font-size:calc(19px * var(--text-scale)); font-weight:var(--w-title); color:var(--navy-deep); background:var(--card-fill); }
+.divider .dc .b { padding:8px 20px; font-size:calc(19px * var(--text-scale)); font-weight:var(--w-title); color:var(--strong-ink); background:var(--strong-fill); }
+
+.bandwrap { margin-top:26px; padding-right:118px; }
+.band { display:flex; align-items:stretch; gap:0; }
+.band .st { flex:1; background:var(--card-fill); border:2px solid var(--navy-mid); border-radius:max(0px, calc(var(--radius-box) - 2px));
+  padding:13px 14px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow); }
+.band .st .n { flex:0 0 auto; width:36px; height:36px; border-radius:var(--badge-shape); background:var(--strong-fill); box-shadow:var(--strong-ring);
+  color:var(--strong-ink); font-size:calc(19px * var(--text-scale)); font-weight:var(--w-title); display:flex; align-items:center; justify-content:center; }
+.band .st .tx { line-height:1.25; }
+.band .st .tx .m { font-size:calc(20px * var(--text-scale)); font-weight:var(--w-strong); color:var(--navy-deep); }
+.band .st .tx .s { margin-top:3px; font-size:calc(15.5px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink-soft); }
+.band .ar { flex:0 0 46px; position:relative; }
+.band .ar::before { content:""; position:absolute; left:6px; right:16px; top:50%; transform:translateY(-50%);
+  height:3px; background:var(--navy-mid); }
+.band .ar::after { content:""; position:absolute; right:4px; top:50%; transform:translateY(-50%);
+  border-left:16px solid var(--navy-mid); border-top:9px solid transparent; border-bottom:9px solid transparent; }
+.bnote { margin-top:14px; text-align:center; font-size:calc(18px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink); }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(22px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+svg.ovl { position:absolute; left:0; top:0; pointer-events:none; }
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE=/*__FIGURE_DATA__*/ null; const ICONS=/*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  if(F.title){ const hd=div('hd'); hd.append(t('h1',null,F.title)); root.append(hd); }
+
+  const stage=div('stage');
+  const up=layer('upper',F.upper), lo=layer('lower',F.lower);
+  stage.append(up);
+  if(F.divider){
+    const d=div('divider'), c=div('dc');
+    c.append(t('div','a','↑ '+F.divider.up), t('div','b',F.divider.down+' ↓'));
+    d.append(div('dl'),c,div('dl')); stage.append(d);
+  }
+  stage.append(lo);
+  root.append(stage);
+
+  let lastStep=null;
+  if(F.band){
+    const bw=div('bandwrap'), b=div('band');
+    (F.band.steps||[]).forEach((s,i)=>{
+      if(i) b.append(div('ar'));
+      const st=div('st'); st.append(t('div','n',s.num));
+      const tx=div('tx'); tx.append(t('div','m',s.text));
+      if(s.sub) tx.append(t('div','s','('+s.sub+')'));
+      st.append(tx); b.append(st); lastStep=st;
+    });
+    bw.append(b);
+    if(F.band.note) bw.append(t('div','bnote',F.band.note));
+    root.append(bw);
+  }
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+
+  // --- 하단 띠 → 구현 층 라이저(우측 게이트를 타고 위로) ---
+  if(lastStep){
+    const R=root.getBoundingClientRect(), A=lastStep.getBoundingClientRect(), B=up.getBoundingClientRect();
+    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('class','ovl'); s.setAttribute('width',R.width); s.setAttribute('height',R.height);
+    s.innerHTML='<defs><marker id="ah" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">'+
+      '<path d="M0,0 L11,4.5 L0,9 z" fill="var(--navy-deep)"/></marker></defs>';
+    const x0=A.right-R.left, y0=A.top-R.top+A.height/2;
+    const gx=(B.right-R.left)+62, x1=(B.right-R.left)+4, y1=B.top-R.top+B.height/2;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M '+x0+' '+y0+' H '+gx+' V '+y1+' H '+x1);
+    p.setAttribute('fill','none'); p.setAttribute('stroke','var(--navy-deep)');
+    p.setAttribute('stroke-width','3'); p.setAttribute('marker-end','url(#ah)');
+    s.append(p); root.append(s);
+  }
+
+  window.__RENDER_DONE__=true;
+  function layer(cls,L){
+    const e=div('layer '+cls), h=div('ltitle');
+    h.append(t('span',null,L.title));
+    if(L.flag) h.append(t('span','fl',L.flag));
+    e.append(h);
+    const b=div('lbody');
+    (L.blocks||[]).forEach(x=>b.append(t('div','blk',x)));
+    e.append(b); return e;
+  }
+  function div(c){const e=document.createElement('div');if(c)e.className=c;return e;}
+  function t(tag,c,txt){const e=document.createElement(tag);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+})();
+</script>
+</body>
+</html>

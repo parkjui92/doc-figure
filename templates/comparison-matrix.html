@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 44px 32px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:26px; }
+.hd .title-row { display:flex; align-items:center; justify-content:var(--title-align); gap:20px; }
+.hd .rule { display:var(--title-deco); flex:1; height:3px; background:var(--navy-deep); position:relative; max-width:340px; }
+.hd .rule::before,.hd .rule::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--navy-deep);}
+.hd .rule.l::before{left:-2px;} .hd .rule.r::after{right:-2px;}
+.hd h1 { font-size:calc(38px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); white-space:nowrap; }
+.hd .sub { margin-top:12px; font-size:calc(20px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink-soft); }
+
+table { width:100%; border-collapse:separate; border-spacing:0; border-radius:var(--radius-box); overflow:hidden;
+  box-shadow:var(--shadow); border:1.5px solid var(--grid-line); }
+thead th { background:var(--strong-fill); color:var(--strong-ink); box-shadow:var(--strong-ring); font-weight:var(--w-title); font-size:calc(20px * var(--text-scale)); padding:16px 18px; text-align:center; }
+thead th:not(:last-child) { border-right:2px solid rgba(255,255,255,.25); }
+tbody td { font-size:calc(17px * var(--text-scale)); font-weight:var(--w-body); color:var(--ink); padding:15px 18px; line-height:1.4;
+  border-top:1.5px solid var(--grid-line); vertical-align:middle; white-space:pre-line; }
+tbody td:not(:last-child) { border-right:1.5px solid var(--grid-line); }
+tbody tr:nth-child(even) td { background:var(--fill-faint); }
+tbody td.k { font-weight:var(--w-strong); color:var(--navy-deep); background:var(--bar-fill) !important; text-align:center; }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(26px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE=/*__FIGURE_DATA__*/ null; const ICONS=/*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  const hd=div('hd'),tr=div('title-row'); tr.append(div('rule l'),t('h1',null,F.title),div('rule r')); hd.append(tr);
+  if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd);
+  const table=document.createElement('table');
+  const thead=document.createElement('thead'), htr=document.createElement('tr');
+  F.columns.forEach(c=>{const th=document.createElement('th'); th.textContent=c; htr.append(th);});
+  thead.append(htr); table.append(thead);
+  const tb=document.createElement('tbody');
+  F.rows.forEach(r=>{ const row=document.createElement('tr');
+    r.forEach((cell,ci)=>{ const td=document.createElement('td');
+      if(ci===0 && F.key_column) td.className='k';
+      td.textContent=cell; row.append(td); });
+    tb.append(row); });
+  table.append(tb); root.append(table);
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+  window.__RENDER_DONE__=true; window.__TEXT_ECHO__=root.innerText.replace(/\s+/g,' ').trim();
+  function div(c){const e=document.createElement('div');if(c)e.className=c;return e;}
+  function t(tag,c,txt){const e=document.createElement(tag);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+})();
+</script>
+</body>
+</html>

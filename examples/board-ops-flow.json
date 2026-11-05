@@ -1,0 +1,370 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {
+    "message": "교육을 마친 시점과 채용이 열리는 시점의 차이를 '대기'로 메우고, 채용이 열리면 즉시 연결한다",
+    "relation": "판정이 있는 운영 흐름 + 되먹임",
+    "why": "시간 띠가 시점 불일치를, 마름모가 투입 조건을, 되돌아가는 화살표가 환류를 보인다"
+  },
+  "title": "인재 풀 운영 흐름 (가상 예시)",
+  "subtitle": "교육을 마친 시점과 채용이 열리는 시점의 차이를 '대기'로 메우고, 채용이 열리면 즉시 연결함",
+  "width": 1700,
+  "body": [
+    {
+      "timeline": [
+        {
+          "label": "교육 → 수료·역량 확보",
+          "tone": "main",
+          "w": 1
+        },
+        {
+          "label": "채용이 열리기 전: 풀에서 대기 (시점 불일치 구간)",
+          "tone": "wait",
+          "w": 2
+        },
+        {
+          "label": "채용 개시 → 즉시 연결·배치",
+          "tone": "go",
+          "w": 2
+        }
+      ]
+    },
+    {
+      "row": [
+        {
+          "col": [
+            {
+              "pill": "① 등록 · 누구를 넣나"
+            },
+            {
+              "id": "in1",
+              "title": "교육과정 수료생",
+              "sub": "역량 기준 충족, 채용은 아직 미개시",
+              "accent": "left"
+            },
+            {
+              "id": "in2",
+              "title": "종료 사업 참여자",
+              "sub": "사업은 끝났으나 일자리 대기",
+              "accent": "left"
+            },
+            {
+              "id": "in3",
+              "title": "경력 전환 희망자",
+              "sub": "역량은 확보, 채용처는 미확보",
+              "accent": "left"
+            },
+            {
+              "id": "crit",
+              "title": "등록 기준",
+              "sub": [
+                "역량 기준 충족",
+                "+ 희망 직무·시기 지정"
+              ],
+              "fill": "tint",
+              "align": "center"
+            },
+            {
+              "id": "rej",
+              "title": "기준 미달 → 등록하지 않음",
+              "fill": "dash",
+              "align": "center"
+            }
+          ],
+          "gap": 12
+        },
+        {
+          "id": "pool",
+          "group": "② 인재 풀 · 어떻게 대기시키나",
+          "body": [
+            {
+              "row": [
+                {
+                  "col": [
+                    {
+                      "matrix": {
+                        "cols": [
+                          "분석",
+                          "개발",
+                          "운영",
+                          "기획",
+                          "센싱"
+                        ],
+                        "rows": [
+                          "모빌리티",
+                          "에너지",
+                          "의료",
+                          "통신"
+                        ],
+                        "cells": [
+                          [
+                            1,
+                            0,
+                            0,
+                            1,
+                            0
+                          ],
+                          [
+                            0,
+                            1,
+                            0,
+                            0,
+                            0
+                          ],
+                          [
+                            0,
+                            0,
+                            1,
+                            0,
+                            0
+                          ],
+                          [
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                          ]
+                        ]
+                      }
+                    },
+                    {
+                      "text": "● 대기 중인 인재: 역량 매트릭스(직무×산업)의 해당 칸에 기다릴 수요 자리를 지정",
+                      "size": "s"
+                    }
+                  ],
+                  "gap": 8,
+                  "w": 1.05
+                },
+                {
+                  "title": "대기 카드 (개인별 기록)",
+                  "items": [
+                    "희망 직무·요구 역량",
+                    "보유 역량·평가 결과",
+                    "부족 역량(보완할 점)",
+                    "가능 시기·지역·근무 형태"
+                  ],
+                  "w": 1
+                }
+              ],
+              "gap": 16
+            },
+            {
+              "id": "check",
+              "title": "정기 점검 (총괄 기관)",
+              "sub": "분기마다 채용 수요 점검 · 의사 확인 · 상태 갱신",
+              "icon": "refresh",
+              "tone": "wait",
+              "layout": "side"
+            }
+          ],
+          "w": 2.05
+        },
+        {
+          "col": [
+            {
+              "pill": "③ 호출 · 언제 꺼내나"
+            },
+            {
+              "spacer": 30
+            },
+            {
+              "id": "dec",
+              "diamond": "채용이\n열렸나?",
+              "size_w": 220,
+              "size_h": 176
+            },
+            {
+              "spacer": 30
+            },
+            {
+              "id": "road",
+              "title": "채용 공고 · 기업 수요조사",
+              "sub": "직무 구체화 + 채용 계획",
+              "fill": "tint",
+              "tone": "go",
+              "align": "center"
+            }
+          ],
+          "gap": 12,
+          "w": 0.82
+        },
+        {
+          "col": [
+            {
+              "pill": "④ 연결 · 어디로 보내나"
+            },
+            {
+              "text": "다른 지원자와 같은 채용 절차를 거쳐 진입",
+              "size": "s",
+              "align": "center"
+            },
+            {
+              "id": "out2",
+              "title": "맞춤 보완 교육",
+              "sub": "채용 기업이 참여해 부족한 역량을 채우고 현장에 배치",
+              "accent": "left",
+              "tone": "go"
+            },
+            {
+              "id": "out3",
+              "title": "현장 실습 지원",
+              "sub": "인턴십·직무 평가와 자격 취득 지원",
+              "accent": "left",
+              "tone": "go"
+            },
+            {
+              "id": "fail",
+              "title": "채용 미성사 → 대기 복귀·다른 사업 안내",
+              "fill": "dash",
+              "align": "center",
+              "indent": 56
+            }
+          ],
+          "gap": 12,
+          "w": 1.3
+        }
+      ],
+      "gap": 34,
+      "align": "start"
+    },
+    {
+      "id": "result",
+      "band": "",
+      "label": "⑤ 그래서 무엇이 되나",
+      "label_w": 230,
+      "body": {
+        "row": [
+          {
+            "title": "채용이 열리면 바로 연결",
+            "sub": [
+              "모집·선발부터 다시 하지 않고",
+              "보완 교육으로 곧바로 시작"
+            ],
+            "align": "center"
+          },
+          {
+            "title": "끝난 교육의 성과가 살아남음",
+            "sub": [
+              "수료 역량이 사장되지 않고",
+              "다음 수요로 이어짐"
+            ],
+            "align": "center"
+          },
+          {
+            "title": "참여자의 안정적 취업",
+            "sub": [
+              "실습·평가를 거쳐",
+              "정규 일자리로 이어짐"
+            ],
+            "align": "center"
+          }
+        ],
+        "gap": 16
+      }
+    }
+  ],
+  "gap": 26,
+  "links": [
+    {
+      "from": "in1",
+      "to": "pool",
+      "route": "curve",
+      "tone": "main"
+    },
+    {
+      "from": "in2",
+      "to": "pool",
+      "route": "curve",
+      "tone": "main"
+    },
+    {
+      "from": "in3",
+      "to": "pool",
+      "route": "curve",
+      "tone": "main"
+    },
+    {
+      "from": "crit",
+      "to": "rej",
+      "tone": "stop",
+      "dash": true
+    },
+    {
+      "from": "pool",
+      "to": "dec",
+      "tone": "main"
+    },
+    {
+      "from": "dec",
+      "to": "pool",
+      "from_side": "top",
+      "to_side": "right",
+      "tone": "wait",
+      "label": "아니오 → 대기 유지",
+      "to_y": 0.12
+    },
+    {
+      "from": "dec",
+      "to": "out2",
+      "tone": "go",
+      "label": "예"
+    },
+    {
+      "from": "dec",
+      "to": "out3",
+      "tone": "go"
+    },
+    {
+      "from": "road",
+      "to": "dec",
+      "tone": "go"
+    },
+    {
+      "from": "out3",
+      "to": "fail",
+      "tone": "stop",
+      "dash": true
+    },
+    {
+      "from": "out3",
+      "to": "result",
+      "from_side": "bottom",
+      "to_side": "top",
+      "tone": "go",
+      "label": "기업 채용·배치",
+      "from_x": 0.05
+    },
+    {
+      "from": "result",
+      "to": "pool",
+      "from_side": "top",
+      "to_side": "bottom",
+      "tone": "go",
+      "label": "배치 결과·새 요구 역량을 풀에 다시 기록",
+      "from_x": 0.3,
+      "to_x": 0.3
+    }
+  ],
+  "legend": [
+    {
+      "tone": "main",
+      "label": "진행"
+    },
+    {
+      "tone": "go",
+      "label": "채용 후 연결·환류"
+    },
+    {
+      "tone": "wait",
+      "label": "대기 유지"
+    },
+    {
+      "tone": "stop",
+      "label": "미통과·종료",
+      "dash": true
+    }
+  ],
+  "note": "※ 운영은 총괄 기관 · 채용 여부는 기업이 결정(등록이 채용을 보장하지 않음)",
+  "print_cm": 24
+}

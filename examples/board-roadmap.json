@@ -1,0 +1,38 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {"message": "3년 동안 과업 셋이 단계별로 맞물려, 3차년도에 정책 이관으로 모인다", "relation": "단계별 일정(과업 × 연차)", "why": "연차 쉐브론이 시간을, 과업 행이 병행을, 마지막 열의 짙은 상자가 도달점을 보인다"},
+  "title": "연차별 추진 로드맵",
+  "subtitle": "1차년도 기반 구축 → 2차년도 시범 운영 → 3차년도 확산·이관",
+  "body": [
+    {"row": [
+      {"spacer": 1, "w": 190},
+      {"steps": [
+        {"title": "1차년도 ('26)", "sub": "기반 구축"},
+        {"title": "2차년도 ('27)", "sub": "시범 운영"},
+        {"title": "3차년도 ('28)", "sub": "확산·이관"}
+      ], "on": 2}
+    ], "gap": 14},
+    {"row": [
+      {"pill": "과업 1 · 진단도구", "shape": "square", "w": 190},
+      {"title": "지표 체계 설계", "items": ["선행 지표 검토", "전문가 델파이 2회"], "fill": "tint"},
+      {"title": "시범 진단 3개 부처", "items": ["진단 실시·결과 분석", "도구 보완"], "fill": "tint"},
+      {"title": "전 부처 진단 확대", "items": ["연 1회 정례 진단"], "focus": true}
+    ], "gap": 14},
+    {"row": [
+      {"pill": "과업 2 · 데이터", "shape": "square", "w": 190, "tone": "sub"},
+      {"title": "성과 데이터 목록화", "items": ["부처별 보유 자료 조사"], "tone": "sub", "fill": "tint"},
+      {"title": "통합 DB 구축", "items": ["연계 규격 확정", "시범 연계"], "tone": "sub", "fill": "tint"},
+      {"title": "DB 상시 운영", "items": ["갱신 주기 확정", "공개 범위 결정"], "tone": "sub", "fill": "tint"}
+    ], "gap": 14},
+    {"row": [
+      {"pill": "과업 3 · 제도", "shape": "square", "w": 190, "tone": "go"},
+      {"title": "제도 현황 분석", "items": ["관련 법령·지침 검토"], "tone": "go", "fill": "tint"},
+      {"title": "개선안 초안", "items": ["공청회 1회", "관계부처 협의"], "tone": "go", "fill": "tint"},
+      {"title": "지침 개정·이관", "items": ["운영 주체 확정"], "tone": "go", "fill": "tint"}
+    ], "gap": 14}
+  ],
+  "gap": 14,
+  "note": "※ 짙은 상자는 사업 종료 시점에 도달할 최종 상태",
+  "source": "연구진 작성 (일정은 예시)"
+}

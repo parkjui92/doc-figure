@@ -1,0 +1,137 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {
+    "message": "주관기관이 총괄하고, 참여기관·수요기관·자문단과 주고받는 것이 정해져 있다",
+    "relation": "주체 간 역할·흐름",
+    "why": "가운데 주관기관에서 사방으로 이어진 화살표마다 주고받는 것을 적어 역할이 겹치지 않음을 보인다"
+  },
+  "title": "연구 추진체계",
+  "subtitle": "주관기관이 총괄하고 참여·수요·자문 주체와 주고받는 것을 미리 정함",
+  "body": [
+    {
+      "row": [
+        {
+          "spacer": 0,
+          "w": 1
+        },
+        {
+          "id": "gov",
+          "title": "과학기술정보통신부 · 전문기관",
+          "sub": "과제 관리 · 성과 점검",
+          "icon": "building-bank",
+          "fill": "tint",
+          "layout": "side",
+          "w": 2.2
+        },
+        {
+          "spacer": 0,
+          "w": 1
+        }
+      ],
+      "gap": 40
+    },
+    {
+      "row": [
+        {
+          "id": "p1",
+          "head": "참여기관",
+          "head_sub": "○○연구원",
+          "items": [
+            "해외 사례 조사",
+            "제도 비교 분석"
+          ],
+          "tone": "sub"
+        },
+        {
+          "id": "lead",
+          "head": "주관기관",
+          "head_sub": "○○대학교 산학협력단",
+          "items": [
+            "연구 총괄·일정 관리",
+            "진단도구 설계·검증",
+            "결과 종합·정책 제언"
+          ],
+          "tone": "main",
+          "fill": "tint",
+          "w": 1.2
+        },
+        {
+          "id": "p2",
+          "head": "수요기관",
+          "head_sub": "○○부처 성과담당",
+          "items": [
+            "현장 수요 제시",
+            "시범 적용 협조"
+          ],
+          "tone": "go"
+        }
+      ],
+      "gap": 170,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "spacer": 0,
+          "w": 1
+        },
+        {
+          "id": "adv",
+          "title": "자문위원회 (산·학·연 7인)",
+          "sub": "분기별 검토 · 방법론 자문",
+          "icon": "users-group",
+          "fill": "tint",
+          "tone": "wait",
+          "layout": "side",
+          "w": 2.2
+        },
+        {
+          "spacer": 0,
+          "w": 1
+        }
+      ],
+      "gap": 40
+    }
+  ],
+  "gap": 64,
+  "links": [
+    {
+      "from": "gov",
+      "to": "lead",
+      "tone": "main",
+      "label": "협약·연구비 지원",
+      "offset": -70,
+      "label_side": "left"
+    },
+    {
+      "from": "lead",
+      "to": "gov",
+      "tone": "main",
+      "label": "단계 보고",
+      "offset": 70
+    },
+    {
+      "from": "lead",
+      "to": "p1",
+      "tone": "sub",
+      "label": "위탁·\n과업 배분",
+      "both": true
+    },
+    {
+      "from": "lead",
+      "to": "p2",
+      "tone": "go",
+      "label": "결과\n시범 적용",
+      "both": true
+    },
+    {
+      "from": "adv",
+      "to": "lead",
+      "tone": "wait",
+      "label": "검토 의견",
+      "dash": true
+    }
+  ],
+  "source": "연구진 작성 (기관명은 예시)"
+}

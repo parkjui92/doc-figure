@@ -1,0 +1,28 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {"message": "세 가지 자료를 세 단계 분석에 넣어 정책 활용 산출물 셋을 낸다", "relation": "입력 → 처리 → 산출(분석틀)", "why": "왼쪽에서 오른쪽으로 흐르는 세 덩어리가 무엇을 넣고 무엇이 나오는지를 한눈에 보인다"},
+  "kicker": "연구 방법",
+  "title": "자료 세 갈래를 세 단계로 분석해 정책 산출물로 잇는다",
+  "body": [
+    {"row": [
+      {"group": "입력 자료", "tone": "mute", "style": "soft", "body": [
+        {"title": "논문·특허", "sub": "공개 학술·특허 DB, 최근 10년", "icon": "file-text", "layout": "side"},
+        {"title": "R&D 과제", "sub": "국가 R&D 과제·성과 정보", "icon": "database", "layout": "side"},
+        {"title": "정책 문서", "sub": "계획·보도자료·회의록", "icon": "news", "layout": "side"}
+      ], "w": 1},
+      {"group": "분석", "body": [
+        {"num": "1", "title": "주제 식별", "sub": "키워드·인용 기반 군집", "fill": "tint"},
+        {"num": "2", "title": "역량 진단", "sub": "국가·기관별 집중도와 성장률", "fill": "tint"},
+        {"num": "3", "title": "공백 도출", "sub": "정책 수요 대비 연구 공백", "fill": "tint"}
+      ], "w": 1.05, "gap": 12},
+      {"group": "산출", "tone": "go", "body": [
+        {"title": "기술 지형도", "sub": "주제 군집과 국가별 위치", "icon": "map", "layout": "side", "tone": "go"},
+        {"title": "역량 진단표", "sub": "강점·약점 분야 목록", "icon": "table", "layout": "side", "tone": "go"},
+        {"title": "투자 우선순위안", "sub": "공백 분야 후보와 근거", "icon": "target-arrow", "layout": "side", "tone": "go"}
+      ], "w": 1}
+    ], "join": "arrow", "gap": 22},
+    {"band": "기본계획 수립 · 사업 기획 · 예산 배분 검토의 근거 자료로 활용", "label": "정책 활용", "icon": "building-bank", "style": "soft", "tone": "go"}
+  ],
+  "source": "연구진 작성"
+}

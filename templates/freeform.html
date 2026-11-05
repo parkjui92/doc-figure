@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+/* =========================================================================
+   freeform — 11종에 맞지 않는 도식을 그 자리에서 짓는 틀.
+   제목·부제·캡션은 다른 템플릿과 같은 형태 토큰을 따르고, 본문은 spec의
+   body_html(HTML 또는 인라인 SVG)을 그대로 넣는다.
+
+   규율 (render_figure.py --verify 가 검사한다)
+   - 색은 반드시 아래 ff- 클래스나 var(--토큰)으로. #hex·rgb() 직접 쓰기 금지.
+   - 글자는 문서에 있는 것만. 본문 텍스트도 DOM에 그대로 들어가 검증된다.
+   ========================================================================= */
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 44px 30px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:28px; }
+.hd .title-row { display:flex; align-items:center; justify-content:var(--title-align); gap:20px; }
+.hd .rule { display:var(--title-deco); flex:1; height:3px; background:var(--navy-deep); position:relative; max-width:340px; }
+.hd .rule::before,.hd .rule::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--navy-deep);}
+.hd .rule.l::before{left:-2px;} .hd .rule.r::after{right:-2px;}
+.hd h1 { font-size:calc(38px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); white-space:nowrap; }
+.hd .sub { margin-top:12px; font-size:calc(20px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink-soft); }
+#canvas { position:relative; }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(28px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+
+/* ---- 자유 도식용 부품 (HTML) — 색·반경·그림자가 전부 프리셋을 따른다 ---- */
+.ff-row   { display:flex; gap:16px; align-items:stretch; }
+.ff-col   { display:flex; flex-direction:column; gap:12px; }
+.ff-center{ display:flex; align-items:center; justify-content:center; text-align:center; }
+.ff-card  { background:var(--card-fill); border:1.5px solid var(--grid-line); border-radius:var(--radius-box);
+            box-shadow:var(--shadow); padding:16px 18px; }
+.ff-card.edge { border:2px solid var(--bar-border); }
+.ff-strong{ background:var(--strong-fill); color:var(--strong-ink); border-radius:var(--radius-box);
+            box-shadow:var(--strong-ring), var(--shadow); padding:16px 18px; }
+.ff-strong .ff-desc { color:var(--strong-ink-soft); }
+.ff-soft  { background:var(--bar-fill); border:1.5px solid var(--bar-border); border-radius:var(--radius-box); padding:14px 16px; }
+.ff-faint { background:var(--fill-faint); border:1px solid var(--line-soft); border-radius:var(--radius-box); padding:14px 16px; }
+.ff-accent{ background:var(--accent-fill); color:var(--accent); border:2px var(--accent-line) var(--accent);
+            border-radius:var(--radius-box); padding:12px 16px; font-weight:var(--w-strong); }
+.ff-muted { background:var(--neutral-fill); color:var(--neutral-ink); border:1px solid var(--neutral-line);
+            border-radius:var(--radius-box); padding:12px 16px; }
+.ff-heat1 { background:var(--heat-1); color:var(--heat-1-ink); } .ff-heat2 { background:var(--heat-2); color:var(--heat-2-ink); }
+.ff-heat3 { background:var(--heat-3); color:var(--heat-3-ink); }
+.ff-badge { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex:0 0 34px;
+            border-radius:var(--badge-shape); background:var(--strong-fill); color:var(--strong-ink);
+            box-shadow:var(--strong-ring); font-weight:var(--w-title); font-size:calc(16px * var(--text-scale)); }
+.ff-pill  { display:inline-block; padding:3px 14px; border-radius:var(--radius-pill); background:var(--bar-fill);
+            color:var(--navy-mid); border:1px solid var(--bar-border); font-size:calc(15px * var(--text-scale)); font-weight:var(--w-strong); }
+.ff-title { font-size:calc(21px * var(--text-scale)); font-weight:var(--w-title); color:var(--navy-deep); line-height:1.25; }
+.ff-strong .ff-title { color:var(--strong-ink); }
+.ff-desc  { margin-top:6px; font-size:calc(16px * var(--text-scale)); font-weight:var(--w-body); color:var(--ink); line-height:1.4; white-space:pre-line; }
+.ff-note  { font-size:calc(15px * var(--text-scale)); font-weight:var(--w-label); color:var(--ink-soft); }
+.ff-arrow { color:var(--navy-mid); font-size:calc(34px * var(--text-scale)); font-weight:900; line-height:1; }
+.ff-hline { border-top:2px solid var(--navy-mid); } .ff-dline { border-top:2px dashed var(--navy-marker); }
+.ff-icon  { width:44px; height:44px; object-fit:contain; }
+
+/* ---- 자유 도식용 부품 (인라인 SVG) ---- */
+svg .s-line   { stroke:var(--navy-mid); fill:none; stroke-width:2.5; }
+svg .s-dash   { stroke:var(--navy-marker); fill:none; stroke-width:2; stroke-dasharray:6 5; }
+svg .s-accent { stroke:var(--accent); fill:none; stroke-width:2.5; }
+svg .s-strong { fill:var(--strong-fill); stroke:var(--navy-deep); stroke-width:2; }
+svg .s-soft   { fill:var(--bar-fill); stroke:var(--bar-border); stroke-width:1.5; }
+svg .s-card   { fill:var(--card-fill); stroke:var(--grid-line); stroke-width:1.5; }
+svg .s-faint  { fill:var(--fill-faint); stroke:var(--line-soft); stroke-width:1; }
+svg .s-heat1  { fill:var(--heat-1); } svg .s-heat2 { fill:var(--heat-2); } svg .s-heat3 { fill:var(--heat-3); }
+svg .s-marker { fill:var(--navy-marker); } svg .s-mid { fill:var(--navy-mid); } svg .s-deep { fill:var(--navy-deep); }
+svg .s-accent-fill { fill:var(--accent); } svg .s-accent-soft { fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+svg .t-strong { fill:var(--strong-ink); font-weight:var(--w-title); }
+svg .t-title  { fill:var(--navy-deep); font-weight:var(--w-title); }
+svg .t-body   { fill:var(--ink); font-weight:var(--w-body); }
+svg .t-soft   { fill:var(--ink-soft); font-weight:var(--w-label); }
+svg .t-accent { fill:var(--accent); font-weight:var(--w-strong); }
+svg .t-heat3  { fill:var(--heat-3-ink); font-weight:var(--w-strong); }
+svg text { font-family:var(--font); }
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE = /*__FIGURE_DATA__*/ null;
+const ICONS  = /*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  if(F.title){
+    const hd=div('hd'), tr=div('title-row');
+    tr.append(div('rule l'), t('h1',null,F.title), div('rule r')); hd.append(tr);
+    if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd);
+  }
+  const cv=div(); cv.id='canvas';
+  if(F.canvas_height) cv.style.height=F.canvas_height+'px';
+  // {{img:이름}} → 아이콘 data URI (아이콘이 없으면 빈 이미지로 퇴화)
+  let body=String(F.body_html||'');
+  body=body.replace(/\{\{img:([\w-]+)\}\}/g,(m,n)=>ICONS[n]||'data:,');
+  cv.innerHTML=body; root.append(cv);
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+  window.__RENDER_DONE__=true; window.__TEXT_ECHO__=root.innerText.replace(/\s+/g,' ').trim();
+  function div(c){const e=document.createElement('div'); if(c)e.className=c; return e;}
+  function t(tag,c,txt){const e=document.createElement(tag); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;}
+})();
+</script>
+</body>
+</html>

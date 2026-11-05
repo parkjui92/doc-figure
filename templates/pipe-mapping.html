@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+/* 글자 배율 상한 — 좌표 고정 배치라 글자가 커지면 서로 겹친다. 큰 글씨가 필요하면 가로 쪽(print_cm 24)으로 넣거나 board-roadmap 을 쓴다. v2.0.1 */
+#figure { --fts: min(var(--text-scale), 1.4); }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:var(--word-break); display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 40px 30px; -webkit-font-smoothing:antialiased; position:relative; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:20px; }
+.hd h1 { font-size:calc(34px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); }
+
+.seghead { display:flex; margin-bottom:8px; }
+.seghead .sp { flex:0 0 auto; }
+.seghead .segs { flex:0 0 auto; display:flex; }
+.seghead .sg { flex:1; position:relative; text-align:center; font-size:calc(18px * var(--fts));
+  font-weight:var(--w-title); color:var(--navy-deep); padding:4px 0; }
+.seghead .sg .ar { position:absolute; right:-9px; top:4px; color:var(--ink-soft); font-weight:var(--w-label); }
+
+.prow { display:flex; align-items:center; margin-bottom:16px; }
+.lane { flex:0 0 auto; padding-right:14px; }
+.lane span { display:inline-block; background:var(--strong-fill); color:var(--strong-ink); box-shadow:var(--strong-ring); font-size:calc(18px * var(--fts));
+  font-weight:var(--w-title); padding:9px 14px; border-radius:max(0px, calc(var(--radius-box) - 3px)); white-space:nowrap; }
+.pipewrap { flex:0 0 auto; position:relative; }
+.pipe { position:relative; height:38px; background:var(--neutral-fill);
+  border:1.5px solid var(--neutral-line); border-radius:var(--radius-pill); overflow:hidden; }
+.pipe .div { position:absolute; top:0; bottom:0; width:0; border-left:1.5px dashed var(--neutral-line); }
+.wedge { position:absolute; top:0; height:38px; }
+.wedge .t,.wedge .b { position:absolute; left:0; right:0; height:19px; background:var(--accent); }
+.wedge .t { top:0;  clip-path:polygon(0 0, 100% 0, 70% 100%, 30% 100%); }
+.wedge .b { top:19px; clip-path:polygon(30% 0, 70% 0, 100% 100%, 0 100%); }
+.stopper { position:absolute; top:-4px; width:14px; height:46px; background:var(--accent); border-radius:4px; }
+.blabel { white-space:pre-line; position:absolute; font-size:calc(17px * var(--fts)); font-weight:var(--w-strong); color:var(--accent);
+  line-height:1.28; text-align:center; }
+.gutter { flex:0 0 auto; }
+.nodes { flex:0 0 auto; display:flex; flex-direction:column; gap:10px; }
+.node { border:2.5px solid var(--navy-deep); background:var(--card-fill); border-radius:max(0px, calc(var(--radius-box) - 2px)); padding:13px 16px;
+  font-size:calc(19px * var(--fts)); font-weight:var(--w-strong); color:var(--navy-deep); line-height:1.32; box-shadow:var(--shadow); }
+.rnote { margin-top:4px; font-size:calc(17px * var(--fts)); font-weight:var(--w-title); color:var(--accent);
+  border-left:4px solid var(--accent); background:var(--accent-soft); border-radius:max(0px, calc(var(--radius-box) - 6px)); padding:7px 12px; }
+.legend { display:flex; gap:26px; margin-top:16px; padding-top:14px; border-top:1.5px solid var(--grid-line); }
+.legend .li { display:flex; align-items:center; gap:9px; font-size:calc(16px * var(--fts)); font-weight:var(--w-label); }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(20px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.unit { order:var(--caption-order); text-align:right; font-size:var(--src-size); color:var(--ink-soft); margin:-6px 0 6px; }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+svg.ovl { position:absolute; left:0; top:0; pointer-events:none; }
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<script>
+const FIGURE=/*__FIGURE_DATA__*/ null; const ICONS=/*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure');
+  const L=F.layout||{}, CW=L.lane||168, PW=L.pipe||580, GW=L.gutter||118, DW=L.node||530;
+  const LANE_STEP=L.label_step||46;   // 라벨 단(_lane) 사이 세로 간격
+  const N=(F.segments||[]).length||4;
+
+  if(F.title){ const hd=div('hd'); hd.append(t('h1',null,F.title)); root.append(hd); }
+
+  const sh=div('seghead'), sp=div('sp'); sp.style.width=CW+'px';
+  const segs=div('segs'); segs.style.width=PW+'px';
+  (F.segments||[]).forEach((s,i)=>{
+    const g=div('sg'); g.append(t('span',null,s));
+    if(i<N-1) g.append(t('span','ar','→'));
+    segs.append(g);
+  });
+  sh.append(sp,segs); root.append(sh);
+
+  const links=[];
+  (F.rows||[]).forEach(R=>{
+    const row=div('prow');
+    const c=div('lane'); c.style.width=CW+'px'; c.append(t('span',null,R.lane)); row.append(c);
+
+    const pw=div('pipewrap'); pw.style.width=PW+'px';
+    const pipe=div('pipe');
+    for(let i=1;i<N;i++){ const d=div('div'); d.style.left=(i/N*100)+'%'; pipe.append(d); }
+    pw.append(pipe);
+
+    let maxLane=0;
+    (R.blocks||[]).forEach(b=>{
+      let mark, cx;
+      if(b._inlet){
+        mark=div('stopper'); mark.style.left='-20px'; pw.append(mark); cx=-13;
+      } else {
+        mark=div('wedge');
+        const x0=b._from/N*PW, x1=b._to/N*PW;
+        mark.style.left=x0+'px'; mark.style.width=(x1-x0)+'px';
+        mark.append(div('t'),div('b')); pipe.append(mark);
+        cx=(x0+x1)/2;
+      }
+      // _lane: 같은 행에 병목이 둘 이상이면 라벨이 가로로 겹친다.
+      // _lane 을 0,1,2… 로 주면 라벨을 아래로 한 단씩 내려 겹침을 푼다.
+      const lw=b._lw||220, lane=b._lane||0;
+      const lb=div('blabel'); lb.style.width=lw+'px';
+      lb.style.top=(52+lane*LANE_STEP)+'px';
+      let lx=cx-lw/2; if(b._inlet) lx=-16;
+      lb.style.left=lx+'px'; lb.textContent=b.label; pw.append(lb);
+      maxLane=Math.max(maxLane,lane+1);
+      links.push({from:lb, node:b._node||0, row:R, pw:pw, route:b._route||'side'});
+    });
+    pw.style.height=(38+(maxLane?(maxLane-1)*LANE_STEP+66:0))+'px';
+    row.append(pw);
+
+    const g=div('gutter'); g.style.width=GW+'px'; row.append(g);
+
+    const dv=div('nodes'); dv.style.width=DW+'px';
+    (R.nodes||[]).forEach(d=>dv.append(t('div','node',d)));
+    if(R.note) dv.append(t('div','rnote',R.note));
+    row.append(dv);
+    root.append(row);
+    R._nodeEls=[...dv.querySelectorAll('.node')];
+  });
+
+  // --- 대응선(병목 → 장치) ---
+  const R0=root.getBoundingClientRect();
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('class','ovl'); s.setAttribute('width',R0.width); s.setAttribute('height',R0.height);
+  s.innerHTML='<defs><marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">'+
+    '<path d="M0,0 L10,4 L0,8 z" fill="var(--navy-deep)"/></marker></defs>';
+  links.forEach(k=>{
+    const dEl=(k.row._nodeEls||[])[k.node]; if(!dEl) return;
+    const A=k.from.getBoundingClientRect(), B=dEl.getBoundingClientRect();
+    const P=k.pw.getBoundingClientRect();
+    const x0=A.right-R0.left+4, y0=A.top-R0.top+A.height/2;
+    const x1=B.left-R0.left-5, y1=B.top-R0.top+B.height/2;
+    const gx=(P.right-R0.left)+GW*0.55;
+    const r=9;
+    let d;
+    if(k.route==='under'){
+      // 다른 병목 라벨을 피해 라벨 아래로 내려간 뒤 게이트를 타고 장치로
+      const cx=A.left-R0.left+A.width/2, yb=A.bottom-R0.top, yd=yb+18;
+      d='M '+cx+' '+yb+' V '+(yd-r)+' Q '+cx+' '+yd+' '+(cx+r)+' '+yd+
+        ' H '+(gx-r)+' Q '+gx+' '+yd+' '+gx+' '+(yd-r)+
+        ' V '+(y1+r)+' Q '+gx+' '+y1+' '+(gx+r)+' '+y1+' H '+x1;
+    } else if(Math.abs(y1-y0)<3){
+      d='M '+x0+' '+y0+' H '+x1;
+    } else {
+      const dy=(y1>y0?1:-1);
+      d='M '+x0+' '+y0+' H '+(gx-r)+
+        ' Q '+gx+' '+y0+' '+gx+' '+(y0+dy*r)+
+        ' V '+(y1-dy*r)+
+        ' Q '+gx+' '+y1+' '+(gx+r)+' '+y1+
+        ' H '+x1;
+    }
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',d);
+    p.setAttribute('fill','none'); p.setAttribute('stroke','var(--navy-deep)');
+    p.setAttribute('stroke-width','2.5'); p.setAttribute('marker-end','url(#ah)');
+    s.append(p);
+  });
+  root.append(s);
+
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.unit) root.append(t('div','unit',/^\(/.test(F.unit)?F.unit:'(단위: '+F.unit+')'));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+  window.__RENDER_DONE__=true;
+  function div(c){const e=document.createElement('div');if(c)e.className=c;return e;}
+  function t(tag,c,txt){const e=document.createElement(tag);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
+})();
+</script>
+</body>
+</html>

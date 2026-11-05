@@ -1,0 +1,125 @@
+/* =========================================================================
+   doc-figure 프리셋 — forest-green
+   환경·농정·지속가능·지역 정책 보고서용. 짙은 숲색 + 호박색 표지(▼◆).
+
+   설계 기준
+   - 제목 양옆 장식선을 걷어 조용한 인상. 가운데 정렬은 유지.
+   - 게이트·마일스톤 표지를 주색이 아닌 호박색으로 — 흐름 속 '멈춤 지점'이 튄다.
+   - 모서리 10px, 옅은 초록 그림자, 한국어 낱말 단위 줄바꿈.
+
+   * 프리셋 규율: 토큰 '값'만 바꾸고 '이름'은 더하거나 빼지 않는다.
+   * @image-style: calm institutional flat infographic, deep forest green with sage tints and amber markers, softly rounded cards, light airy spacing
+   ========================================================================= */
+:root {
+  /* v2.0.1 인쇄 크기 — 16cm 폭에 넣을 때 본문 약 10pt·최소 8pt 이상 (text-scale·caption-size·src-size·title-scale·word-break) */
+  /* --- 팔레트 --- */
+  --navy-deep:   #1F4D3A;   /* 뱃지·헤더밴드·푸터칩·누적박스 */
+  --navy-mid:    #2F6B52;   /* 보조 강조 */
+  --navy-marker: #B7791F;   /* 게이트 ▼ · 마일스톤 ◆ */
+  --bar-fill:    #E8F1EC;   /* 간트바 채움 (연) */
+  --bar-fill-2:  #D3E5DA;   /* 간트바 채움 (진) */
+  --bar-border:  #4E8A6C;   /* 간트바 테두리 */
+  --grid-line:   #D8E2DC;   /* 월 구분 점선·격자 */
+  --ink:         #1E2A24;   /* 본문 텍스트 */
+  --ink-soft:    #5E6E65;   /* 부제·캡션 */
+  --bg:          #FFFFFF;   /* 배경 (항상 흰색) */
+  --chip-track:  #D3E5DA;   /* 도넛 트랙 */
+
+  /* --- 확장 토큰 (추가만 — 기존 값 불변) --- */
+  --heat-1:      #E8F1EC;   /* 판정 히트맵 1단계(약) */
+  --heat-2:      #9CC5AE;   /* 판정 히트맵 2단계(중) */
+  --heat-3:      #1F4D3A;   /* 판정 히트맵 3단계(강) */
+  --heat-1-ink:  #1E2A24;
+  --heat-2-ink:  #143325;
+  --heat-3-ink:  #FFFFFF;
+  --neutral-fill:#F2F4F3;   /* 기준(무채색) 열·보조 바탕 */
+  --neutral-line:#C8D0CB;   /* 무채색 테두리 */
+  --neutral-ink: #4B5650;   /* 무채색 본문 */
+  --accent:      #B5452B;   /* 강조색 — 병목·미통과 분기 */
+  --accent-soft: #F8E9E4;   /* 강조 배경 */
+  --track-1:     #1F4D3A;   /* 타임라인 축1 진남색 */
+  --track-2:     #6E9A82;   /* 타임라인 축2 청회색 */
+  --track-3:     #B4C4BA;   /* 타임라인 축3 옅은 회색 */
+  /* --- 보조 선·바탕 (템플릿 하드코딩 제거분) --- */
+  --neutral-head:#5F6B64;
+  --line-soft:   #C9DDD1;
+  --fill-faint:  #F5F9F6;
+  --line-track:  #C4D1C8;
+
+
+  /* --- 타이포 --- */
+  --font: "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;
+  --w-title: 800;
+  --w-strong: 700;
+  --w-label: 600;
+  --w-body: 500;
+
+  /* --- 형태 --- */
+  --radius-bar: 8px;
+  --radius-box: 10px;
+  --radius-badge: 10px;
+  --shadow: 0 2px 8px rgba(31,77,58,0.10);
+
+  /* --- 형태 (v1.1 — 색이 아니라 '생김새'를 바꾸는 토큰) ---
+     기본값은 v1.0 모양과 같다. 값을 바꾸면 11종이 한꺼번에 다른 인상이 된다. */
+  --font-title:  "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;   /* 제목 글꼴 — 본문(--font)과 따로 */
+  --title-align: center;       /* center | left */
+  --title-scale: 1.37;            /* 제목 크기 배율 */
+  --title-ink:   var(--navy-deep);
+  --title-track: -1px;         /* 제목 자간 */
+  --title-deco:  none;        /* 제목 양옆 장식선: block | none */
+  --title-under: 0 solid transparent;   /* 제목 아래 가로줄 (border 값) */
+  --title-under-gap: 0px;
+  --caption-align: center;
+  --caption-ink: var(--ink);
+  --strong-fill: var(--navy-deep);      /* 강조 상자(헤더 띠·뿌리 상자·최종 단계) 채움 */
+  --strong-ink:  #FFFFFF;
+  --strong-ink-soft: var(--bar-fill-2);
+  --strong-ring: 0 0 0 0 transparent;   /* 강조 상자 안쪽 테두리 — 외곽선형이면 inset 0 0 0 2px 색 */
+  --card-fill:   #FFFFFF;               /* 일반 카드 바탕 */
+  --badge-shape: 50%;                   /* 번호 뱃지·단계 원 — 50%=원, 4px=사각 */
+  --radius-pill: 999px;                 /* 알약형 칩 — 각지게 하려면 작은 값 */
+  --word-break: keep-all;                 /* keep-all = 한국어 낱말 단위 줄바꿈 */
+  --shadow-hub:  0 4px 14px rgba(31,77,58,.22);   /* 논증 도해 중심 상자 그림자 */
+
+  /* --- 편집 (v1.3 — 보고서·도판식 배치. 기본값은 v1.2 와 같다) --- */
+  --fig-display: block;        /* flex 로 두면 캡션을 제목 위로 올릴 수 있다 */
+  --caption-order: 0;          /* -1 = 그림 번호·제목을 맨 위로 (국내 보고서 관례) */
+  --caption-mt: 1;             /* 캡션 위 여백 배율 (위로 올릴 땐 0) */
+  --caption-mb: 0px;
+  --caption-size: 30px;
+  --caption-weight: var(--w-label);
+  --src-size: 27px;            /* 자료·주 줄 */
+  --src-gap: 12px;
+  --title-tag: none;           /* block = 제목 위 짧은 색 막대 (도판식 표식) */
+  --title-tag-color: var(--accent);
+  --accent-line: dashed;       /* 강조(탈락·병목) 상자 테두리: dashed | solid */
+  --accent-fill: var(--accent-soft);   /* 강조 상자 바탕 — transparent 면 글자와 선만 */
+  --focus-fill:  var(--strong-fill);     /* highlight 로 지정한 '제목이 말하는 그 요소' — 구조용 강조와 분리 */
+  --focus-ink:   var(--strong-ink);
+  --focus-ink-soft: var(--strong-ink-soft);
+  --focus-ring:  var(--strong-ring);
+  --trim-x:      auto;         /* none = PNG 좌우 여백을 자르지 않는다 — 문서 속 그림 폭을 모두 같게 */
+  --text-scale:  2.0;            /* 도식 안 글자 배율 (제목은 --title-scale, 캡션·자료는 --caption-size·--src-size) */
+  --ornament:    flex;         /* none = 뜻 없이 겹치는 장식(중복 번호 뱃지 등)을 걷는다 */
+
+  /* --- board (v2.0) — 뜻으로 고르는 색 6가지 + 조립 부품 --- */
+  --tone-main: #1F4D3A; --tone-main-tint: #EBF7F2; --tone-main-line: #A6D3C1;
+  --tone-sub: #2F6B52; --tone-sub-tint: #ECF6F2; --tone-sub-line: #A8D1C0;
+  --tone-go: #2E7D6B; --tone-go-tint: #EAF7F5; --tone-go-line: #A4D5CA;
+  --tone-wait: #B7791F; --tone-wait-tint: #FAF3E8; --tone-wait-line: #DBC29F;
+  --tone-stop: #B5452B; --tone-stop-tint: #FAECE8; --tone-stop-line: #DBAA9F;
+  --tone-mute: #6D7A72; --tone-mute-tint: #F0F2F1; --tone-mute-line: #BAC0BC;
+  --board-font: "Pretendard", "Pretendard Variable", "Apple SD Gothic Neo", "NanumSquare", "NanumGothic", "Malgun Gothic", sans-serif;
+  --board-fs: 22px;                 /* 본문 기준 글자 — 그림 폭 1500px 의 1.5% (16cm 삽입 시 약 6.6pt) */
+  --board-line: #CCE1D8;
+  --board-panel: #F4FBF8;
+  --board-chip: #E6F4EE;
+  --board-radius: 10px;
+  --board-icon-stroke: 1.8;
+  --board-link-w: 2.6px;
+  --board-band-label: rgba(0, 0, 0, 0.18);
+  --board-bar-sep: rgba(255, 255, 255, 0.35);
+  --board-step-mid: #CCEBDE;
+  /* --- /board --- */
+}
