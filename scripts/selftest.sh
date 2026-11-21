@@ -12,8 +12,12 @@
 #   ⑥ 자유 도식 색 규율 — freeform 예시 본문에 프리셋 밖 색이 없는가
 #   ⑦ 이미지 모델 경로   — 전 예시 프롬프트 설계(과금 0) + 최신 모델 자동 선택 규칙
 #   ⑧ 도식 형태 14종     — 형태마다 예시·프롬프트 구도 묘사·한국어 이름이 있는가 (빠진 형태 적발)
-#   ⑨ board 부품 정합    — 레시피가 쓰는 아이콘이 묶음에 있는가, 레시피 10종 완비, tone 토큰 18개가 모든 프리셋에 있는가
-#   (⑤ 에서 board 레시피는 배치 점검 통과 + 인상(흰 바탕·색 면적)이 기준 범위 안이어야 통과)
+#   ⑨ board 부품 정합    — 레시피가 쓰는 아이콘이 묶음에 있는가, 레시피 11종 완비(v2.1 논리 흐름도 추가), tone 토큰 18개가 모든 프리셋에 있는가
+#   (⑤ 에서 board 레시피는 배치 점검 통과 + 인상(흰 바탕·색 면적·진한 면)이 기준 범위 안 + 배치 권고 0 이어야 통과)
+#   ⑩ board 회귀 (v2.1)   — 카드 body 배열이 그림을 멈추지 않는가, 스크립트 오류가 숨지 않는가, pill_tone, 카드 focus 가 통째로 칠해지지 않는가
+#   ⑧-2 형태 14종 (v2.3)·템플릿 11종 (v2.4) 새 디자인 — 같은 사양이 viz 로 가는가, "classic": true 는 지난 모양으로 가는가
+#   ⑪ viz 18종 (v2.2·v2.2.1)     — 디자인 보고서풍 구조도 7종·데이터 그래프 11종(유량도·연결도·연결망 포함)마다 예시·구도 묘사·한국어 이름이 있는가,
+#                           기존 프리셋은 평면(--gloss 0·--solid 0)이고 design-report 만 켜는가, 도형보다 큰 글자를 실제로 잡는가
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -56,7 +60,7 @@ echo "── ④ 예시 스키마 ──"
 python3 - <<'PY' && ok "예시 전건이 실재 템플릿·프리셋 참조" || ng "예시 참조 오류"
 import json, glob, os, sys
 sys.path.insert(0, 'scripts'); import render_figure as RF
-tpl = {os.path.basename(p)[:-5] for p in glob.glob('templates/*.html')} | set(RF.FORMS)
+tpl = {os.path.basename(p)[:-5] for p in glob.glob('templates/*.html')} | set(RF.FORMS) | set(getattr(RF, 'VIZ', []))
 pre = {os.path.basename(p)[:-4] for p in glob.glob('presets/*.css')}
 bad = False
 for p in sorted(glob.glob('examples/*.json')):
@@ -78,7 +82,8 @@ else
     OUT=$(python3 scripts/render_figure.py "$f" -o "$TMP/$t.png" --verify 2>&1); RC=$?
     if [ $RC -eq 0 ] && echo "$OUT" | grep -q "글자 깨짐 0"; then
       case "$t" in
-        board-*) if echo "$OUT" | grep -q "⚠ 인상"; then ng "$t — 인상 범위 밖"; echo "$OUT" | grep -A2 "⚠ 인상" | sed 's/^/     /'; continue; fi ;;
+        board-*) if echo "$OUT" | grep -q "⚠ 인상"; then ng "$t — 인상 범위 밖"; echo "$OUT" | grep -A3 "⚠ 인상" | sed 's/^/     /'; continue; fi
+                 if echo "$OUT" | grep -q "⚠ 배치 권고"; then ng "$t — 배치 권고(긴 글 꺾임·focus 여러 곳·진한 띠)"; echo "$OUT" | grep -A4 "⚠ 배치 권고" | sed 's/^/     /'; continue; fi ;;
       esac
       ok "$t"
     else ng "$t"; echo "$OUT" | grep -E "✗|^   - " | head -6 | sed 's/^/     /'; fi
@@ -131,6 +136,44 @@ if bad: print("     누락:", sorted(set(bad)))
 print("     %d종" % len(RF.FORMS)); sys.exit(1 if bad else 0)
 PY
 
+echo "── ⑧-2 도식 형태 14종의 새 디자인 (v2.3) ──"
+python3 - <<'PY' && ok "형태 14종이 새 디자인(viz)으로 가고 classic 은 지난 모양으로 감" || ng "형태 경로 오류"
+import sys
+sys.path.insert(0, 'scripts'); import render_figure as RF
+src = open('templates/viz.html', encoding='utf-8').read()
+bad = [f for f in RF.FORMS if ("'%s':" % f) not in src]
+for f in RF.FORMS:
+    a = RF.resolve_form({"template": f}); b = RF.resolve_form({"template": f, "classic": True})
+    if a.get("template") != "viz" or a.get("viz") != f: bad.append(f + ' 기본 경로')
+    if b.get("template") != "forms" or b.get("form") != f: bad.append(f + ' classic 경로')
+for f in getattr(RF, 'TPL_X', []):   # v2.4 — 템플릿 11종
+    a = RF.resolve_form({"template": f}); b = RF.resolve_form({"template": f, "classic": True})
+    if ("'%s':" % f) not in src: bad.append(f + ' viz 에 없음')
+    if a.get("template") != "viz" or a.get("viz") != f: bad.append(f + ' 기본 경로')
+    if b.get("template") != f: bad.append(f + ' classic 경로')
+if bad: print("     오류:", bad)
+print("     형태 %d종 + 템플릿 %d종" % (len(RF.FORMS), len(getattr(RF, "TPL_X", [])))); sys.exit(1 if bad else 0)
+PY
+CB="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+if [ -x "$CB" ]; then
+  RT=$(mktemp -d)
+  python3 - "$RT" <<'PY'
+import json, sys
+s = json.load(open('examples/form-pyramid.json', encoding='utf-8')); s['classic'] = True
+json.dump(s, open(sys.argv[1] + '/c.json', 'w', encoding='utf-8'), ensure_ascii=False)
+PY
+  OUT=$(python3 scripts/render_figure.py "$RT/c.json" -o "$RT/c.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 0 ] && echo "$OUT" | grep -q "template=forms" && echo "$OUT" | grep -q "글자 깨짐 0"; then ok "classic: true 로 지난 모양 렌더"; else ng "classic 렌더 실패 (rc=$RC)"; fi
+  python3 - "$RT" <<'PY'
+import json, sys
+s = json.load(open('examples/org-chart.json', encoding='utf-8')); s['classic'] = True
+json.dump(s, open(sys.argv[1] + '/d.json', 'w', encoding='utf-8'), ensure_ascii=False)
+PY
+  OUT=$(python3 scripts/render_figure.py "$RT/d.json" -o "$RT/d.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 0 ] && echo "$OUT" | grep -q "template=org-chart" && echo "$OUT" | grep -q "글자 깨짐 0"; then ok "템플릿 classic: true 로 지난 모양 렌더"; else ng "템플릿 classic 렌더 실패 (rc=$RC)"; fi
+  rm -rf "$RT"
+fi
+
 echo "── ⑨ board 부품 정합 ──"
 python3 - <<'PY' && ok "아이콘·레시피·tone 토큰 정합" || ng "board 부품 정합 오류"
 import json, glob, re, sys, os
@@ -150,10 +193,74 @@ need = ['--tone-%s%s' % (t, s) for t in ('main', 'sub', 'go', 'wait', 'stop', 'm
 miss = [os.path.basename(p) for p in glob.glob('presets/*.css') if not all(re.search(r'%s:' % re.escape(n), open(p, encoding='utf-8').read()) for n in need)]
 if bad: print("     묶음에 없는 아이콘:", bad)
 if miss: print("     tone 토큰 빠진 프리셋:", miss)
-if len(recipes) < 10: print("     레시피 %d종 (10종 필요)" % len(recipes))
+if len(recipes) < 11: print("     레시피 %d종 (11종 필요)" % len(recipes))
 print("     레시피 %d종 · 아이콘 %d/%d개 사용 · tone 토큰 %d개 × 프리셋 %d벌" % (len(recipes), len(used), len(icons), len(need), len(glob.glob('presets/*.css'))))
-sys.exit(1 if (bad or miss or len(recipes) < 10) else 0)
+sys.exit(1 if (bad or miss or len(recipes) < 11) else 0)
 PY
+
+echo "── ⑩ board 회귀 (v2.1) ──"
+CB="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+if [ ! -x "$CB" ]; then
+  echo "     크롬 없음 — 건너뜀"
+else
+  RT=$(mktemp -d)
+  # 카드 body 배열 — v2.1 전에는 그림 전체가 멈췄다(2026-11-12 다른 작업 세션의 그림에서 발견)
+  cat > "$RT/a.json" <<'J'
+{"template":"board","title":"회귀","body":[{"row":[{"head":"카드","pill":"표식","pill_tone":"wait","body":[{"pill":"알약","tone":"wait"},{"items":["항목 하나","항목 둘"]}]},{"title":"옆 카드","text":"정상","focus":true}]}],"source":"시험"}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/a.json" -o "$RT/a.png" --verify --keep-html 2>&1); RC=$?
+  if [ $RC -eq 0 ] && echo "$OUT" | grep -q "글자 깨짐 0"; then ok "카드 body 배열·pill_tone 렌더"; else ng "카드 body 배열 렌더"; echo "$OUT" | grep -E "✗|^   - " | head -4 | sed 's/^/     /'; fi
+  H=$(echo "$OUT" | sed -n 's/^\[doc-figure\] HTML: //p')
+  if [ -n "$H" ] && grep -q "pillin.toned" "$H" && grep -q "card.focus { --card-bg: var(--tone-main-tint)" "$H"; then ok "pill_tone·가벼운 카드 focus 규칙 탑재"; else ng "pill_tone·카드 focus 규칙 없음"; fi
+  [ -n "$H" ] && rm -f "$H"
+  # 스크립트 오류는 숨지 않고 원인과 함께 실패해야 한다
+  cat > "$RT/b.json" <<'J'
+{"template":"board","title":"오류 시험","body":[{"row":[{"title":"카드","fill":{"bad":1}}]}]}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/b.json" -o "$RT/b.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "board 오류"; then ok "스크립트 오류를 원인과 함께 실패(exit 4)"; else ng "스크립트 오류가 숨음 (rc=$RC)"; fi
+  rm -rf "$RT"
+fi
+
+echo "── ⑪ viz 18종 (v2.2·v2.2.1) ──"
+python3 - <<'PY' && ok "형태마다 예시·구도 묘사·이름 완비, 그라데이션 스위치는 design-report 만" || ng "viz 형태·스위치 오류"
+import sys, os, re, glob
+sys.path.insert(0, 'scripts'); import render_figure as RF, gen_image as G, figure_pack as P
+src = open('templates/viz.html', encoding='utf-8').read()
+bad = [f for f in RF.VIZ if not os.path.exists('examples/viz-%s.json' % f) or f not in G.HINTS or f not in P.FORM_KO or ("'%s'" % f) not in src]
+on = []
+for p in sorted(glob.glob('presets/*.css')):
+    c = open(p, encoding='utf-8').read()
+    i = c.find(':root {'); m_ = re.search(r'^\}\s*$', c[i:], re.M) if i >= 0 else None
+    c = c[i:i + m_.start()] if m_ else ''   # 토큰은 :root 블록 안에 있어야 한다 (파생 프리셋은 :root 뒤에 규칙이 더 있다)
+    g = re.search(r'^\s*--gloss:\s*([0-9.]+)', c, re.M); s_ = re.search(r'^\s*--solid:\s*([0-9.]+)', c, re.M)
+    if not g or not s_: bad.append(os.path.basename(p) + ' 토큰 없음'); continue
+    if float(g.group(1)) > 0 or float(s_.group(1)) > 0: on.append(os.path.basename(p)[:-4])
+if on != ['design-report']: bad.append('그라데이션·입체가 켜진 프리셋: %s (design-report 만 허용)' % on)
+if bad: print("     누락·오류:", bad)
+print("     구조도 %d종 + 그래프 %d종 · 켜진 프리셋 %s" % (len(RF.VIZ_SHAPES), len(RF.VIZ_CHARTS), on)); sys.exit(1 if bad else 0)
+PY
+CB="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+if [ ! -x "$CB" ]; then
+  echo "     크롬 없음 — 건너뜀"
+else
+  RT=$(mktemp -d)
+  # 도형보다 긴 글은 실패해야 한다
+  cat > "$RT/a.json" <<'J'
+{"template":"ribbon-list","title":"넘침 시험","first_width":300,"items":[{"text":"이 띠보다 훨씬 긴 글을 넣으면 도형을 넘는다는 것을 점검이 잡아야 한다"},{"text":"둘째"}]}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/a.json" -o "$RT/a.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "도형보다 큼"; then ok "도형보다 큰 글자를 실패로 잡음(exit 4)"; else ng "넘친 글자를 못 잡음 (rc=$RC)"; fi
+  cat > "$RT/b.json" <<'J'
+{"template":"slope","title":"오류 시험","from_label":"전","to_label":"후","items":"목록이 아님"}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/b.json" -o "$RT/b.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "스크립트 오류"; then ok "viz 스크립트 오류를 원인과 함께 실패(exit 4)"; else ng "viz 스크립트 오류가 숨음 (rc=$RC)"; fi
+  # 같은 사양을 house 로 그리면 그라데이션·입체가 꺼져 있어야 한다 (평면)
+  python3 scripts/render_figure.py examples/viz-funnel-stack.json --preset house --html-only -o "$RT/h.html" >/dev/null 2>&1
+  if grep -q -- "--gloss: 0;" "$RT/h.html" && grep -q -- "--solid: 0;" "$RT/h.html"; then ok "house 프리셋에서는 평면(그라데이션·입체 꺼짐)"; else ng "house 에서 그라데이션 스위치가 켜짐"; fi
+  rm -rf "$RT"
+fi
 
 echo
 echo "───────────────────────────────"

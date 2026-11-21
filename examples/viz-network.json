@@ -1,0 +1,182 @@
+{
+ "template": "network",
+ "preset": "design-report",
+ "title": "공동 연구는 데이터 분야를 거쳐 이어진다",
+ "groups": [
+  {
+   "key": "g1",
+   "label": "기반 기술",
+   "tone": "go"
+  },
+  {
+   "key": "g2",
+   "label": "응용 분야",
+   "tone": "sub"
+  },
+  {
+   "key": "g3",
+   "label": "지원 분야",
+   "tone": "mute"
+  }
+ ],
+ "center": "data",
+ "nodes": [
+  {
+   "id": "data",
+   "label": "데이터",
+   "value": 90,
+   "group": "g1",
+   "highlight": true,
+   "tone": "wait"
+  },
+  {
+   "id": "ai",
+   "label": "인공지능",
+   "value": 70,
+   "group": "g1"
+  },
+  {
+   "id": "semi",
+   "label": "반도체",
+   "value": 55,
+   "group": "g1"
+  },
+  {
+   "id": "net",
+   "label": "통신",
+   "value": 40,
+   "group": "g1"
+  },
+  {
+   "id": "bio",
+   "label": "바이오",
+   "value": 60,
+   "group": "g2"
+  },
+  {
+   "id": "energy",
+   "label": "에너지",
+   "value": 45,
+   "group": "g2"
+  },
+  {
+   "id": "mobil",
+   "label": "모빌리티",
+   "value": 38,
+   "group": "g2"
+  },
+  {
+   "id": "mat",
+   "label": "소재",
+   "value": 34,
+   "group": "g2"
+  },
+  {
+   "id": "edu",
+   "label": "인력 양성",
+   "value": 26,
+   "group": "g3"
+  },
+  {
+   "id": "std",
+   "label": "표준·인증",
+   "value": 20,
+   "group": "g3"
+  },
+  {
+   "id": "infra",
+   "label": "연구 장비",
+   "value": 24,
+   "group": "g3"
+  }
+ ],
+ "links": [
+  {
+   "from": "data",
+   "to": "ai",
+   "weight": 9
+  },
+  {
+   "from": "data",
+   "to": "bio",
+   "weight": 7
+  },
+  {
+   "from": "data",
+   "to": "energy",
+   "weight": 4
+  },
+  {
+   "from": "data",
+   "to": "mobil",
+   "weight": 5
+  },
+  {
+   "from": "data",
+   "to": "net",
+   "weight": 3
+  },
+  {
+   "from": "data",
+   "to": "std",
+   "weight": 2
+  },
+  {
+   "from": "data",
+   "to": "edu",
+   "weight": 3
+  },
+  {
+   "from": "ai",
+   "to": "semi",
+   "weight": 6
+  },
+  {
+   "from": "ai",
+   "to": "bio",
+   "weight": 3
+  },
+  {
+   "from": "ai",
+   "to": "mobil",
+   "weight": 4
+  },
+  {
+   "from": "semi",
+   "to": "mat",
+   "weight": 5
+  },
+  {
+   "from": "semi",
+   "to": "infra",
+   "weight": 3
+  },
+  {
+   "from": "energy",
+   "to": "mat",
+   "weight": 4
+  },
+  {
+   "from": "net",
+   "to": "mobil",
+   "weight": 2
+  },
+  {
+   "from": "bio",
+   "to": "infra",
+   "weight": 2
+  },
+  {
+   "from": "edu",
+   "to": "ai",
+   "weight": 2
+  },
+  {
+   "from": "std",
+   "to": "net",
+   "weight": 1
+  }
+ ],
+ "footnote": "원 크기는 공동 연구 과제 수, 선 굵기는 두 분야가 함께 참여한 과제 수",
+ "source": "가상 예시(수치는 설명용)"
+}

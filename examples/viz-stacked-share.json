@@ -1,0 +1,60 @@
+{
+ "template": "stacked-share",
+ "preset": "design-report",
+ "title": "기업 규모가 작을수록 정부 재원 의존도가 높다",
+ "unit": "%",
+ "series": [
+  {
+   "label": "정부"
+  },
+  {
+   "label": "자체"
+  },
+  {
+   "label": "민간 투자"
+  },
+  {
+   "label": "기타"
+  }
+ ],
+ "rows": [
+  {
+   "label": "소기업",
+   "values": [
+    58,
+    24,
+    12,
+    6
+   ],
+   "highlight": true
+  },
+  {
+   "label": "중기업",
+   "values": [
+    41,
+    36,
+    17,
+    6
+   ]
+  },
+  {
+   "label": "중견기업",
+   "values": [
+    27,
+    48,
+    20,
+    5
+   ]
+  },
+  {
+   "label": "대기업",
+   "values": [
+    9,
+    71,
+    17,
+    3
+   ]
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

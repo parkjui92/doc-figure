@@ -1,0 +1,37 @@
+{
+ "template": "dumbbell",
+ "preset": "design-report",
+ "title": "계획 대비 실적 격차는 인력 양성에서 가장 크다",
+ "a_label": "계획",
+ "b_label": "실적",
+ "unit": "%",
+ "rows": [
+  {
+   "label": "인력 양성",
+   "a": 80,
+   "b": 46,
+   "highlight": true
+  },
+  {
+   "label": "기반 구축",
+   "a": 70,
+   "b": 61
+  },
+  {
+   "label": "기술 개발",
+   "a": 75,
+   "b": 72
+  },
+  {
+   "label": "사업화 지원",
+   "a": 60,
+   "b": 52
+  },
+  {
+   "label": "국제 협력",
+   "a": 40,
+   "b": 43
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

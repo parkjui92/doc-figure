@@ -1,0 +1,182 @@
+{
+ "template": "sankey",
+ "preset": "design-report",
+ "title": "박사 졸업자의 절반 가까이가 수도권 기업으로 이동한다",
+ "unit": "명",
+ "col_titles": [
+  "학위 취득 기관",
+  "첫 취업 부문",
+  "취업 지역"
+ ],
+ "nodes": [
+  {
+   "id": "u1",
+   "label": "수도권 대학",
+   "col": 0
+  },
+  {
+   "id": "u2",
+   "label": "지역 거점 대학",
+   "col": 0
+  },
+  {
+   "id": "u3",
+   "label": "과학기술원",
+   "col": 0
+  },
+  {
+   "id": "s1",
+   "label": "기업",
+   "col": 1,
+   "highlight": true
+  },
+  {
+   "id": "s2",
+   "label": "대학",
+   "col": 1
+  },
+  {
+   "id": "s3",
+   "label": "출연연",
+   "col": 1
+  },
+  {
+   "id": "s4",
+   "label": "해외",
+   "col": 1
+  },
+  {
+   "id": "r1",
+   "label": "수도권",
+   "col": 2
+  },
+  {
+   "id": "r2",
+   "label": "충청권",
+   "col": 2
+  },
+  {
+   "id": "r3",
+   "label": "그 밖의 지역",
+   "col": 2
+  },
+  {
+   "id": "r4",
+   "label": "국외",
+   "col": 2
+  }
+ ],
+ "links": [
+  {
+   "from": "u1",
+   "to": "s1",
+   "value": 520
+  },
+  {
+   "from": "u1",
+   "to": "s2",
+   "value": 260
+  },
+  {
+   "from": "u1",
+   "to": "s3",
+   "value": 120
+  },
+  {
+   "from": "u1",
+   "to": "s4",
+   "value": 100
+  },
+  {
+   "from": "u2",
+   "to": "s1",
+   "value": 240
+  },
+  {
+   "from": "u2",
+   "to": "s2",
+   "value": 210
+  },
+  {
+   "from": "u2",
+   "to": "s3",
+   "value": 90
+  },
+  {
+   "from": "u2",
+   "to": "s4",
+   "value": 40
+  },
+  {
+   "from": "u3",
+   "to": "s1",
+   "value": 180
+  },
+  {
+   "from": "u3",
+   "to": "s2",
+   "value": 70
+  },
+  {
+   "from": "u3",
+   "to": "s3",
+   "value": 110
+  },
+  {
+   "from": "u3",
+   "to": "s4",
+   "value": 60
+  },
+  {
+   "from": "s1",
+   "to": "r1",
+   "value": 690
+  },
+  {
+   "from": "s1",
+   "to": "r2",
+   "value": 150
+  },
+  {
+   "from": "s1",
+   "to": "r3",
+   "value": 100
+  },
+  {
+   "from": "s2",
+   "to": "r1",
+   "value": 280
+  },
+  {
+   "from": "s2",
+   "to": "r2",
+   "value": 90
+  },
+  {
+   "from": "s2",
+   "to": "r3",
+   "value": 170
+  },
+  {
+   "from": "s3",
+   "to": "r2",
+   "value": 250
+  },
+  {
+   "from": "s3",
+   "to": "r1",
+   "value": 40
+  },
+  {
+   "from": "s3",
+   "to": "r3",
+   "value": 30
+  },
+  {
+   "from": "s4",
+   "to": "r4",
+   "value": 200
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

@@ -18,7 +18,7 @@ DOM에 배치하므로 글자 깨짐이 구조적으로 불가능하다.
 
 옵션:
   -o/--out     출력 경로 (기본: spec 파일명 .png)
-  --preset     프리셋 이름 (기본: spec의 "preset" 필드 → 없으면 house)
+  --preset     프리셋 이름 (기본: spec의 "preset" 필드 → 없으면 house, viz 계열은 design-report)
   --icons DIR  아이콘 PNG 디렉터리를 인라인 (기본: 없음 — 공개판은 아이콘 미탑재)
   --verify     렌더 후 spec의 모든 텍스트가 DOM에 실재하는지 대조
   --html-only  크롬 없이 자기완결 HTML만 출력 (설치 0 경로와 동일 산출)
@@ -35,9 +35,20 @@ ROOT      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES = os.path.join(ROOT, "templates")
 PRESETS   = os.path.join(ROOT, "presets")
 DEFAULT_PRESET = "house"   # v2.0 — 사용자 채택본 팔레트 (references/benchmark-kr-2026.md)
+VIZ_DEFAULT_PRESET = "design-report"   # v2.3 — viz 계열(도식 형태 14종·구조도·그래프)은 프리셋을 주지 않으면 디자인 보고서풍 (사용자 선택 2026-11-21)
 # 관계의 모양으로 고르는 도식 14종 — 전부 templates/forms.html 한 파일이 그린다
 FORMS = ["cycle", "funnel", "venn", "quadrant", "pyramid", "concentric", "hub", "fishbone",
          "staircase", "before-after", "waterfall", "iceberg", "swimlane", "logic-tree"]
+# v2.2 — 디자인 보고서풍 구조도 6종 + 데이터 그래프 9종. v2.2.1 — 유량도 sankey · 연결도 link-map · 연결망 network 추가. 전부 templates/viz.html 한 파일이 그린다
+# (references/benchmark-intl-2026.md · references/viz-spec.md)
+VIZ_SHAPES = ["funnel-stack", "growing-circles", "circle-chain", "ring-core", "ribbon-list", "stat-strip", "link-map"]
+VIZ_CHARTS = ["bar-highlight", "bar-line", "line-highlight", "slope", "dumbbell", "range-bar",
+              "bubble-compare", "small-multiples", "stacked-share",
+              "sankey", "network"]   # v2.3 — 유량도·연결망 (link-map 연결도는 구조도 쪽)
+VIZ = VIZ_SHAPES + VIZ_CHARTS
+# v2.4 — 새 디자인으로 옮긴 기존 템플릿 11종 (board·freeform 은 옮기지 않는다)
+TPL_X = ["flow-process", "org-chart", "structure-block", "layer-stack", "concept-argument", "comparison-matrix",
+         "matrix-heatmap", "decision-flow", "timeline-gantt", "timeline-tracks", "pipe-mapping"]
 CHROME    = os.environ.get(
     "CHROME_BIN",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
@@ -54,8 +65,16 @@ def available(dirpath, ext):
 def resolve_form(spec):
     """"template": "venn" 처럼 형태 이름을 바로 쓴 spec 을 forms 템플릿으로 돌린다."""
     t = spec.get("template")
+    if t in TPL_X and not spec.get("classic"):
+        # v2.4 — 템플릿 11종도 같은 사양을 새 디자인(viz)으로 그린다. 지난 모양은 "classic": true
+        return dict(spec, viz=t, template="viz")
+    if t in FORMS and not spec.get("classic"):
+        # v2.3 — 도식 형태 14종은 같은 사양을 새 디자인(viz)으로 그린다. 지난 모양은 "classic": true
+        return dict(spec, viz=t, template="viz")
     if t in FORMS:
         spec = dict(spec, form=t, template="forms")
+    if t in VIZ:
+        spec = dict(spec, viz=t, template="viz")
     return spec
 
 
@@ -148,8 +167,10 @@ FONT_PROBE = """<pre id="__font_sizes" style="display:none"></pre>
 """
 
 PRINT_CM = 16.0      # 기본 삽입 폭 — A4 세로 본문(여백 제외 15~17cm)
-BODY_PT_MIN = 9.0    # 본문(글자 수 가중 중앙값) 하한 — board 는 10pt 로 맞춘다. 사용자 승인 연구개발계획서 그림 약 10pt, 2026-10-27 "글씨가 너무 작다"
-MIN_PT = 8.0         # 가장 작은 글자 하한 — 주석·화살표 이름표·자료 줄 포함
+BODY_PT_MIN = 8.0    # 본문(글자 수 가중 중앙값) 하한 — board 기본 9pt. v2.0.1(2026-10-27 "글씨가 너무 작다")은 9.0·board 10pt
+MIN_PT = 7.0         # 가장 작은 글자 하한 — 주석·화살표 이름표·자료 줄 포함. v2.0.1은 8.0
+# v2.1 (2026-11-12) — 채택본을 한글 문서에 실제로 들어간 폭(16.1~17.6cm)으로 다시 재니 board형 9장 본문 중앙 9.1pt
+# (7.8~9.4)·가장 작은 글자 7.1pt였다. "글씨가 작다"를 받은 v2.0 은 6pt, 10pt 고정은 채택본보다 한 단계 컸다.
 
 
 def print_sizes(dom, png_path, scale, print_cm):
@@ -254,6 +275,18 @@ def trim_white(out_path, margin, scale, keep_x=False, width=CANVAS_W):
 # 못 그린 9장은 색 39~67%(그라데이션·3D·무지개) 또는 흰 바탕 86%(휑함). 클립아트는 수치로 못 잡는다.
 BENCH_WHITE = (0.55, 0.72)
 BENCH_CHROMA = (0.12, 0.25)
+# v2.1 — '진한 면': 글자 획을 지우고 남은 진한 칠(명도 120 미만)의 면적. 채택본과 '구린' 그림을 가장 잘 가른다.
+# 사용자 채택본 board형 9장 중앙 7%(0~9%) · 계획서 채택본 0~13% · 2026-11-12 나쁜 예 두 장 17~19%.
+# 같은 잣대로 흰 바탕 중앙 58%(43~77%) · 색 면적 16%(7~26%) — 색 25%·흰 바탕 45% 기준은 채택본 9장 중 4장을 걸러 쓰지 않는다.
+DARK_WARN = 0.12
+CHROMA_WARN = 0.30
+WHITE_LOW_WARN = 0.40
+# v2.2 — 데이터 그래프의 잣대. 해외 보고서 29건에서 자른 그래프의 중앙값(references/benchmark-intl-2026.md §2).
+# 그래프는 구조도보다 흰 바탕이 넓고(중앙 81%, 90%선 93%) 진한 면이 거의 없다(중앙 0.1%, 90%선 11%).
+BENCH_INTL_CHART = ("81%", "6.5%", "0.1%")   # 해외 그래프 91장 중앙 — 흰 바탕 · 색 면적 · 진한 면
+CHART_WHITE_HIGH = 0.95
+CHART_CHROMA_LOW = 0.008
+CHART_DARK_WARN = 0.12
 
 
 def impression(out_path, grey=False):
@@ -274,6 +307,32 @@ def impression(out_path, grey=False):
             if max(r, g, b) - min(r, g, b) >= 28:
                 chroma += 1
     return white / n, chroma / n
+
+
+def dark_fill(out_path):
+    """진하게 칠한 면의 비율 — 글자 획(가는 선)은 열림 연산으로 지우고 넓은 진한 칠만 남긴다."""
+    try:
+        from PIL import Image, ImageFilter
+    except ImportError:
+        return None
+    im = Image.open(out_path).convert("L")
+    im.thumbnail((900, 900))
+    w, h = im.size
+    dark = im.point(lambda v: 255 if v < 120 else 0)
+    op = dark.filter(ImageFilter.MinFilter(7)).filter(ImageFilter.MaxFilter(7))
+    return sum(1 for v in op.tobytes() if v) / float(w * h)
+
+
+def layout_warnings(dom):
+    """board 가 스스로 잰 권고(긴 글 꺾임·focus 여러 곳·진한 띠 여러 줄). 실패는 아니다."""
+    import re, html as _h
+    m = re.search(r'<pre id="__layout_warnings"[^>]*>(.*?)</pre>', dom, re.S)
+    if not m or not m.group(1).strip():
+        return []
+    try:
+        return json.loads(_h.unescape(m.group(1)))
+    except ValueError:
+        return []
 
 
 def dump_dom(html_path):
@@ -310,7 +369,10 @@ NON_TEXT_KEYS = {"template", "preset", "icon", "dept_icon", "highlight",
                  # board — 배치·모양 키
                  "id", "tone", "fill", "accent", "head_style", "num_style", "layout", "align", "valign",
                  "style", "bullet", "widths", "join", "gap", "route", "from", "to", "from_side", "to_side",
-                 "via", "shape", "header", "indent", "indent_r", "lane_r", "lane_l", "offset", "label_side", "print_cm", "body_pt", "cols", "head_align", "justify", "label_at", "font_scale", "w", "h"}
+                 "via", "shape", "header", "indent", "indent_r", "lane_r", "lane_l", "offset", "label_side", "label_style", "pill_tone", "body_gap", "head_sub_in", "print_cm", "body_pt", "cols", "head_align", "justify", "label_at", "font_scale", "w", "h",
+                 # viz — 형태·배치 키
+                 "viz", "orient", "kind", "palette", "sort", "highlight_tone", "tone_a", "tone_b", "a_tone", "b_tone",
+                 "group", "key", "center", "classic"}
 
 
 # 마크업이 든 키 — 태그를 걷어낸 글자 조각을 대조한다 (freeform)
@@ -356,6 +418,10 @@ def verify(spec, html_path, dom=None):
     norm = lambda s: "".join(s.split())
     domn = norm(dom)
     checkable = {k: v for k, v in spec.items() if k not in ("template", "preset", "form")}
+    if spec.get("template") == "viz":   # 가로축 눈금 이름표는 칸이 좁으면 건너뛰어 적는다 — 전수 대조에서 뺀다
+        checkable.pop("x", None)
+        if isinstance(checkable.get("data"), dict):
+            checkable["data"] = {k: v for k, v in checkable["data"].items() if k != "x"}
     strings = collect_strings(checkable)
     missing = [s for s in strings if norm(s) not in domn]
     if "[forms 오류]" in dom:   # 도식 렌더러가 멈췄다 — 글자가 다 있어도 실패
@@ -382,6 +448,8 @@ def main():
         print("템플릿 (%d): %s" % (len(available(TEMPLATES, ".html")),
                                    ", ".join(available(TEMPLATES, ".html"))))
         print("도식 형태 (%d, forms): %s" % (len(FORMS), ", ".join(FORMS)))
+        print("디자인 보고서풍 구조도 (%d, viz): %s" % (len(VIZ_SHAPES), ", ".join(VIZ_SHAPES)))
+        print("데이터 그래프 (%d, viz): %s" % (len(VIZ_CHARTS), ", ".join(VIZ_CHARTS)))
         print("프리셋 (%d): %s" % (len(available(PRESETS, ".css")),
                                    ", ".join(available(PRESETS, ".css"))))
         return
@@ -394,7 +462,7 @@ def main():
     if not template:
         sys.exit("[doc-figure] spec에 'template' 필드가 필요합니다.\n"
                  "  사용 가능: %s" % ", ".join(available(TEMPLATES, ".html")))
-    preset = a.preset or spec.get("preset") or DEFAULT_PRESET
+    preset = a.preset or spec.get("preset") or (VIZ_DEFAULT_PRESET if template == "viz" else DEFAULT_PRESET)
 
     tokens = load_preset(preset)
     html = build_html(load_template(template), spec, tokens, a.icons)
@@ -422,6 +490,12 @@ def main():
               % (out, ("%dx%d" % size if size else "?"), template, preset))
         if a.verify:
             dom = dump_dom(html_path)
+            errs = [x for x in layout_issues(dom) if str(x).startswith(("board 오류", "스크립트 오류"))]
+            if errs:
+                print("[verify] ✗ 그림 스크립트가 도중에 멈췄다 — 아래 오류부터 고칠 것:")
+                for x in errs:
+                    print("   - %s" % x)
+                sys.exit(4)
             strings, missing = verify(spec, html_path, dom)
             if missing:
                 print("[verify] ✗ DOM 미출력 텍스트 %d건:" % len(missing))
@@ -440,20 +514,44 @@ def main():
                 for s_ in issues:
                     print("   - %s" % s_)
                 sys.exit(4)
+            if template == "viz":
+                print("[verify] ✓ 배치 점검 통과 (글자 겹침·그림 밖 이탈·도형보다 큰 글자 0)")
             if template == "board":
                 print("[verify] ✓ 배치 점검 통과 (글자 넘침·화살표 관통·작은 글자 0)")
+                warns = layout_warnings(dom)
+                if warns:
+                    print("[verify] ⚠ 배치 권고 %d건 — 채택본은 항목이 한두 줄로 끝나고 진한 곳이 한두 군데다:" % len(warns))
+                    for w_ in warns:
+                        print("   - %s" % w_)
             ps = print_sizes(dom, out, a.scale, float(spec.get("print_cm") or PRINT_CM))
             if ps:
                 body, small, small_t, cw = ps
                 pc = float(spec.get("print_cm") or PRINT_CM)
                 bad_body, bad_min = body < BODY_PT_MIN, small < MIN_PT
-                mark = "✗" if (template == "board" and (bad_body or bad_min)) else ("⚠" if (bad_body or bad_min) else "✓")
+                mark = "✗" if (template in ("board", "viz") and (bad_body or bad_min)) else ("⚠" if (bad_body or bad_min) else "✓")
                 print("[verify] %s 인쇄 글자(%.0fcm 폭에 넣을 때): 본문 %.1fpt · 가장 작은 글자 %.1fpt '%s'  (권장 본문 %.1fpt 이상 · 최소 %.1fpt)"
                       % (mark, pc, body, small, small_t, BODY_PT_MIN, MIN_PT))
                 if mark == "✗":
                     print("   - 글씨가 문서에 넣기엔 작다 — 글자를 줄이지 말고 한 줄 글을 줄이거나 열을 줄일 것")
                     sys.exit(5)
             imp = impression(out)
+            if imp and template == "viz" and spec.get("viz") in VIZ_CHARTS:
+                # 데이터 그래프는 잣대가 다르다 — 해외 보고서 그래프(references/benchmark-intl-2026.md)는 흰 바탕이 넓고 진한 면이 거의 없다
+                wr, cr = imp
+                df = dark_fill(out)
+                note = []
+                if wr > CHART_WHITE_HIGH:
+                    note.append("흰 바탕이 %.0f%% — 그래프가 그림에 비해 작다 (높이를 줄이거나 막대·선을 굵게)" % (100 * wr))
+                if cr < CHART_CHROMA_LOW and not ("mono" in preset or "print" in preset or "classic" in preset):
+                    note.append("색 면적 %.1f%% — 강조한 항목이 눈에 띄지 않는다 (highlight 지정을 확인)" % (100 * cr))
+                if df is not None and df > CHART_DARK_WARN:
+                    note.append("진한 면 %.0f%% — 무겁다 (해외 보고서 그래프 중앙 %s). 진한 색은 강조 계열 하나만" % (100 * df, BENCH_INTL_CHART[2]))
+                print("[verify] %s 인상: 흰 바탕 %.0f%% · 색 면적 %.1f%% · 진한 면 %s  (해외 보고서 그래프 중앙 %s · %s · %s)"
+                      % ("⚠" if note else "✓", 100 * wr, 100 * cr, ("%.1f%%" % (100 * df)) if df is not None else "?",
+                         BENCH_INTL_CHART[0], BENCH_INTL_CHART[1], BENCH_INTL_CHART[2]))
+                for x in note:
+                    print("   - " + x)
+                imp = None
             if imp:
                 wr, cr = imp
                 grey = bool(_re.search(r"--tone-go:\s*#(3D3D3D|404040)", tokens)) or "mono" in preset or "print" in preset
@@ -462,10 +560,15 @@ def main():
                     note.append("흰 바탕이 %.0f%% — 와이어프레임처럼 휑해 보일 수 있음 (머리띠·옅은 바탕 채움을 늘리거나 글자를 키울 것)" % (100 * wr))
                 if not grey and cr < 0.06:
                     note.append("색 면적 %.1f%% — 색이 뜻을 거의 싣지 않음" % (100 * cr))
-                if cr > 0.38:
+                if cr > CHROMA_WARN:
                     note.append("색 면적 %.0f%% — 무겁다 (진한 면은 머리·이름표·핵심 한 곳만)" % (100 * cr))
-                print("[verify] %s 인상: 흰 바탕 %.0f%% · 색 면적 %.1f%%  (잘 그린 공공 도식 57장 중앙값 60%% · 17%%)"
-                      % ("⚠" if note else "✓", 100 * wr, 100 * cr))
+                if wr < WHITE_LOW_WARN:
+                    note.append("흰 바탕이 %.0f%% — 칠한 면이 그림을 덮는다 (카드는 흰 몸, 이름표 열·띠는 옅게)" % (100 * wr))
+                df = dark_fill(out)
+                if df is not None and df > DARK_WARN:
+                    note.append("진한 면 %.0f%% — 무겁다 (채택본 중앙 7%%). 진하게 칠하는 곳은 제목이 말하는 한 곳, 이름표 열·띠는 style: soft" % (100 * df))
+                print("[verify] %s 인상: 흰 바탕 %.0f%% · 색 면적 %.1f%% · 진한 면 %s  (채택본 board형 중앙 58%% · 16%% · 7%%, 잘 그린 공공 도식 57장 60%% · 17%%)"
+                      % ("⚠" if note else "✓", 100 * wr, 100 * cr, ("%.1f%%" % (100 * df)) if df is not None else "?"))
                 for x in note:
                     print("   - " + x)
     finally:

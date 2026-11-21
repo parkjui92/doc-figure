@@ -1,0 +1,30 @@
+{
+ "template": "bubble-compare",
+ "preset": "design-report",
+ "title": "기초 단계 예산은 실증 단계의 약 6배 규모이다",
+ "unit": "억 원",
+ "items": [
+  {
+   "label": "기초",
+   "value": 1820,
+   "note": "대학·출연연 중심"
+  },
+  {
+   "label": "응용",
+   "value": 960,
+   "note": "산학연 공동"
+  },
+  {
+   "label": "개발",
+   "value": 640,
+   "note": "기업 주관"
+  },
+  {
+   "label": "실증",
+   "value": 310,
+   "note": "현장 적용 시험",
+   "highlight": true
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

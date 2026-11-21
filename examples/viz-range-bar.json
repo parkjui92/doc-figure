@@ -1,0 +1,43 @@
+{
+ "template": "range-bar",
+ "preset": "design-report",
+ "title": "과제 기간은 분야에 따라 2년에서 9년까지 분포한다",
+ "range_label": "최단~최장",
+ "mid_label": "중앙값",
+ "unit": "년",
+ "zero": true,
+ "decimals": 1,
+ "rows": [
+  {
+   "label": "바이오",
+   "min": 3,
+   "max": 9,
+   "mid": 6
+  },
+  {
+   "label": "에너지",
+   "min": 3,
+   "max": 8,
+   "mid": 5
+  },
+  {
+   "label": "반도체",
+   "min": 2,
+   "max": 6,
+   "mid": 4
+  },
+  {
+   "label": "통신",
+   "min": 2,
+   "max": 5,
+   "mid": 3
+  },
+  {
+   "label": "데이터",
+   "min": 2,
+   "max": 4,
+   "mid": 2.5
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

@@ -306,9 +306,32 @@ def texts(spec):
     return out
 
 
+# v2.2 — 디자인 보고서풍 구조도·데이터 그래프 (templates/viz.html)
+HINTS.update({
+ "funnel-stack": "A vertical stack of separate funnels, each narrower than the one above, centred slightly left. Behind each funnel runs a pale full-width horizontal band in that stage's tint; the stage name sits at the left end of the band, the funnel carries its short core label in white, and the description sits at the right end joined by a thin grey arrow. Between two funnels, on white, a short line of text says what carries the result down to the next stage. The last funnel uses the single accent hue.",
+ "growing-circles": "Circles rising along a diagonal from lower left to upper right, each larger than the one before and slightly overlapping it with a thin white rim; fills deepen step by step in one hue and only the last circle takes the accent hue. Each circle holds a short label and a small sub-label; a short note sits right beside each circle, alternating upper-left and lower-right.",
+ "circle-chain": "A row of overlapping outlined circles inside one long pale rounded container with a small pill heading on its top edge; each circle has a bold title and one short line. A solid pill at the far left (input) and one at the far right (result) connect to the chain with double chevrons; a short note sits under each circle.",
+ "ring-core": "A thick circular ring made of two curved arrows chasing each other sits in the centre, with the core keyword inside it. A pale horizontal band passes behind the ring: on its left a bold phrase with a small dark pill tag, on its right a pill tag with a bold phrase. Up to four outlined panels sit in the corners (top-left, top-right, bottom-left, bottom-right), each with a small numbered square, a coloured title strip and bullet lines.",
+ "ribbon-list": "A short stack of solid horizontal ribbons, left-aligned, each a little longer than the one above and cut with a slanted right end; white bold text inside each, an optional small white number disc at the left. The last ribbon uses the second hue.",
+ "stat-strip": "A single row of two to five key figures separated by thin vertical rules: each column has one very large number in the palette hue with its unit set smaller beside it, an optional thin rounded progress bar under the number, then a bold label saying what the number measures and one short grey note. Only the highlighted column sits on a pale tint and uses the accent hue.",
+ "sankey": "A Sankey flow diagram: two to four columns of thin vertical node bars, each bar's height proportional to its total; curved bands run from left nodes to right nodes with thickness proportional to the value. Only the highlighted node's bands take the accent hue; all other bands are pale grey. Node names with their totals sit beside the bars (outside on the first and last column), small column headings on top. No legend.",
+ "link-map": "A three-column connection diagram: a few large solid boxes on the left (causes) and right (areas), many compact pale boxes in the middle; thin same-width curved lines with small arrowheads join left boxes to middle boxes and middle boxes to right boxes, each line taking the colour of the solid box it belongs to. Line width carries no quantity.",
+ "network": "A network diagram: nodes are circles placed on one large ellipse, optionally with the key node in the centre; circle size encodes the node's value and colour encodes its group (legend row above). Links are curved lines inside the ellipse whose thickness encodes weight; links touching the highlighted node are in the accent hue, all others pale grey. Each node is labelled just outside the ellipse.",
+ "bar-highlight": "A ranked horizontal bar chart with no axis: category names right-aligned at the left, values printed at the bar ends. Exactly the highlighted bar is in the main hue; all other bars are light grey. An optional dashed vertical reference line carries a small label on top.",
+ "bar-line": "A combination chart: light-tinted vertical bars on the left scale with pale horizontal gridlines, and one strong accent-coloured line with white-ringed points on its own hidden scale, its values printed above the points. One bar may be darker to mark the turning year. A two-item legend sits above the plot at the left.",
+ "line-highlight": "A line chart in which only the highlighted series is drawn in a strong colour and thick stroke; every other series is a thin light grey line. Each line is labelled directly at its right end with name and last value (no legend). Pale horizontal gridlines, sparse x labels.",
+ "slope": "A slope chart: two vertical guide lines for two dates with bold date headings; one straight line per item joining its two values. Left labels read 'name value', right labels 'value name'. Only the highlighted item is coloured and thick; the rest are grey.",
+ "dumbbell": "A dumbbell chart: one row per item, a grey dot for the first measure and a main-hue dot for the second joined by a thick pale bar, values printed outside each dot. Value axis along the top with dashed vertical gridlines; the highlighted row sits on a pale band.",
+ "range-bar": "A range chart: one row per item with a rounded pale bar spanning minimum to maximum, a dark dot for the median, and the two end values printed outside the bar. Value axis along the top with dashed vertical gridlines.",
+ "bubble-compare": "Proportional circles in one row, their areas proportional to the values and their bottoms resting on one thin baseline. The value is printed large inside each circle (above it if the circle is small); name and one short note below. Only the highlighted circle takes the accent hue.",
+ "small-multiples": "A grid of small line charts sharing one y scale, one panel per category, each with a bold title at top left, a soft area under the line, the last value printed at the line's end, and only the first and last x labels. Highlighted panels use the accent hue; the rest use the secondary hue.",
+ "stacked-share": "100% stacked horizontal bars, one row per group, segments ordered the same way in every row and shaded as steps of one hue from dark to light; each segment wide enough carries its percentage. A legend row above; the highlighted row has a thin accent outline.",
+})
+
+
 def build_prompt(spec, preset, css, from_render=False, hint=None):
     spec = RF.resolve_form(spec)
-    tpl = spec.get("form") or spec.get("template", "")
+    tpl = spec.get("form") or spec.get("viz") or spec.get("template", "")
     body = {k: v for k, v in spec.items() if k not in ("title", "subtitle", "caption")}
     L = ["Create a finished diagram figure for a Korean policy / research document (landscape, print quality)."]
     it = spec.get("intent") or {}
@@ -473,7 +496,7 @@ def main():
     if not a.spec:
         ap.error("spec JSON 경로가 필요합니다")
     spec = json.load(open(a.spec, encoding="utf-8"))
-    preset = a.preset or spec.get("preset") or RF.DEFAULT_PRESET
+    preset = a.preset or spec.get("preset") or (RF.VIZ_DEFAULT_PRESET if RF.resolve_form(spec).get("template") == "viz" else RF.DEFAULT_PRESET)
     css = RF.load_preset(preset)
     out = a.out or os.path.splitext(a.spec)[0] + ".gpt.png"
 

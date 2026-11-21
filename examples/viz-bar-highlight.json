@@ -1,0 +1,42 @@
+{
+ "template": "bar-highlight",
+ "preset": "design-report",
+ "title": "연구개발 인력은 충청권에 가장 많이 분포한다",
+ "unit": "인구 천 명당 연구원 수, 명",
+ "items": [
+  {
+   "label": "충청권",
+   "value": 14.2,
+   "highlight": true
+  },
+  {
+   "label": "수도권",
+   "value": 11.8
+  },
+  {
+   "label": "동남권",
+   "value": 7.4
+  },
+  {
+   "label": "대경권",
+   "value": 6.9
+  },
+  {
+   "label": "호남권",
+   "value": 5.1
+  },
+  {
+   "label": "강원권",
+   "value": 3.8
+  },
+  {
+   "label": "제주권",
+   "value": 2.6
+  }
+ ],
+ "ref": {
+  "value": 8.3,
+  "label": "전국 평균"
+ },
+ "source": "가상 예시(수치는 설명용)"
+}

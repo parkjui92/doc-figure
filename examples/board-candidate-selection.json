@@ -100,7 +100,8 @@
           "align": "center",
           "icon": "binoculars",
           "layout": "stack",
-          "tone": "mute"
+          "tone": "mute",
+          "head_style": "soft"
         }
       ],
       "gap": 22
@@ -111,7 +112,8 @@
       "label": "전문기관",
       "icon": "building-bank",
       "style": "line",
-      "label_w": 250
+      "label_w": 250,
+      "label_style": "soft"
     }
   ],
   "gap": 34,

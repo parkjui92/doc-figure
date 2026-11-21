@@ -1,0 +1,192 @@
+{
+  "template": "board",
+  "preset": "house",
+  "intent": {
+    "message": "청년층 이용이 줄어든 까닭은 운영 시간에 있고, 야간·주말 개방으로 되돌린다",
+    "relation": "논리 흐름 (현황 → 문제 → 원인 → 개선 방향 → 기대 효과)",
+    "why": "왼쪽 이름표 열의 화살표가 논증 순서를, 오른쪽 한 줄 진술이 단계마다 하는 말을, 굵은 테두리 한 곳이 제목이 말하는 원인을 보인다"
+  },
+  "kicker": "분석의 흐름",
+  "title": "청년층 이용 감소의 원인은 운영 시간이며, 야간·주말 개방으로 되돌린다",
+  "body": [
+    {
+      "band": "공공도서관 이용 실태 조사 · 분관별 운영 기록 · 이용자 면담",
+      "label": "근거 자료",
+      "style": "soft",
+      "label_style": "soft",
+      "tone": "mute",
+      "align": "left",
+      "label_w": 210
+    },
+    {
+      "row": [
+        {
+          "id": "l1",
+          "pill": "현황",
+          "shape": "square",
+          "style": "soft",
+          "tone": "mute",
+          "w": 210
+        },
+        {
+          "text": "청년층(19~34세) 이용자가 3년 사이 뚜렷이 줄었음",
+          "w": 1
+        },
+        {
+          "text": "Ⅱ장 1절",
+          "size": "s",
+          "align": "right",
+          "w": "auto"
+        }
+      ],
+      "gap": 20,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "id": "l2",
+          "pill": "문제",
+          "shape": "square",
+          "style": "soft",
+          "tone": "stop",
+          "w": 210
+        },
+        {
+          "items": [
+            "평일 저녁·주말에 문을 여는 분관이 적음",
+            "청년층의 여가 시간과 개관 시간이 겹치지 않음"
+          ],
+          "tone": "stop",
+          "w": 1
+        },
+        {
+          "text": "Ⅱ장 2절",
+          "size": "s",
+          "align": "right",
+          "w": "auto"
+        }
+      ],
+      "gap": 20,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "id": "l3",
+          "pill": "원인",
+          "shape": "square",
+          "tone": "stop",
+          "w": 210
+        },
+        {
+          "items": [
+            "운영 인력이 낮 시간에 몰려 있음",
+            "야간·주말 개방에 쓸 예산 항목이 없음"
+          ],
+          "tone": "stop",
+          "focus": true,
+          "w": 1,
+          "card": true,
+          "fill": "white"
+        },
+        {
+          "text": "Ⅲ장",
+          "size": "s",
+          "align": "right",
+          "w": "auto"
+        }
+      ],
+      "gap": 20,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "id": "l4",
+          "pill": "개선 방향",
+          "shape": "square",
+          "style": "soft",
+          "tone": "main",
+          "w": 210
+        },
+        {
+          "items": [
+            "생활권마다 야간·주말 개방 분관 지정",
+            "무인 대출·자원봉사로 저녁 인력 보완"
+          ],
+          "w": 1
+        },
+        {
+          "text": "Ⅳ장 1~2절",
+          "size": "s",
+          "align": "right",
+          "w": "auto"
+        }
+      ],
+      "gap": 20,
+      "align": "center"
+    },
+    {
+      "row": [
+        {
+          "id": "l5",
+          "pill": "기대 효과",
+          "shape": "square",
+          "style": "soft",
+          "tone": "go",
+          "w": 210
+        },
+        {
+          "items": [
+            "청년층 이용 회복과 분관 간 이용 격차 축소"
+          ],
+          "tone": "go",
+          "w": 1
+        },
+        {
+          "text": "Ⅳ장 3절",
+          "size": "s",
+          "align": "right",
+          "w": "auto"
+        }
+      ],
+      "gap": 20,
+      "align": "center"
+    },
+    {
+      "band": "개방 분관 시범 운영 → 이용 변화 측정 → 지정 기준 확정",
+      "label": "다음 단계",
+      "style": "soft",
+      "label_style": "soft",
+      "tone": "go",
+      "align": "left",
+      "label_w": 210
+    }
+  ],
+  "links": [
+    {
+      "from": "l1",
+      "to": "l2",
+      "tone": "mute"
+    },
+    {
+      "from": "l2",
+      "to": "l3",
+      "tone": "stop"
+    },
+    {
+      "from": "l3",
+      "to": "l4",
+      "tone": "main"
+    },
+    {
+      "from": "l4",
+      "to": "l5",
+      "tone": "go"
+    }
+  ],
+  "gap": 22,
+  "note": "굵은 테두리는 제목이 말하는 원인",
+  "source": "연구진 작성 (가상 사례)"
+}

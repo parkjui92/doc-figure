@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+/*__STYLE_TOKENS__*/
+/* =========================================================================
+   viz — 디자인 보고서풍 구조도 5종 + 데이터 그래프 9종 (v2.2, 2026-11-20)
+   해외 보고서 벤치마크(references/benchmark-intl-2026.md)에서 반복해 나온 형태.
+   spec 의 "template" 에 형태 이름을 바로 쓴다 (render_figure.py 가 viz 로 돌린다).
+
+   구조도  funnel-stack 쌓은 깔때기 · growing-circles 커지는 원 · circle-chain 겹치는 원 사슬
+           ring-core 순환 고리와 핵심어 · ribbon-list 꼬리표 목록 · stat-strip 큰 숫자 묶음
+   그래프  bar-highlight 강조 막대 · bar-line 막대+선 · line-highlight 강조 선 · slope 기울기
+           dumbbell 아령 · range-bar 범위 막대 · bubble-compare 비례 원
+           small-multiples 작은 그래프 묶음 · stacked-share 구성비 누적 막대
+   유량·연결 (v2.2.1)  sankey 유량도 · link-map 연결도(열 사이 연결) · network 연결망
+   기존 도식 형태 14종의 새 디자인 (v2.3)  cycle · funnel · venn · quadrant · pyramid · concentric · hub · fishbone
+           staircase · before-after · waterfall · iceberg · swimlane · logic-tree — forms.html 과 같은 사양을 받는다
+   기존 템플릿 11종의 새 디자인 (v2.4)  flow-process · org-chart · structure-block · layer-stack · concept-argument · comparison-matrix
+           matrix-heatmap · decision-flow · timeline-gantt · timeline-tracks · pipe-mapping — 각 템플릿 html 과 같은 사양을 받는다
+
+   도형은 SVG, 글자는 절대배치 HTML — 한국어 줄바꿈을 브라우저가 맡는다.
+   색은 전부 토큰(tone 6가지). 그라데이션·입체는 프리셋 토큰 --gloss·--solid 가 0 이면 꺼진다
+   (house 등 기존 프리셋은 0 — 평면. design-report 프리셋만 켠다).
+   글자 크기는 프리셋 --text-scale 과 무관하게 고정(16cm 폭에 넣을 때 본문 8pt·최소 7pt 이상).
+   배치 점검: 글자 겹침·그림 밖 이탈·도형보다 큰 글자를 스스로 재서 __layout_issues 에 적는다.
+   ========================================================================= */
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; }
+#figure { width:1500px; word-break:keep-all; display:var(--fig-display); flex-direction:column; background:var(--bg); font-family:var(--font); color:var(--ink);
+  padding:34px 44px 30px; -webkit-font-smoothing:antialiased; }
+.hd { text-align:var(--title-align); border-bottom:var(--title-under); padding-bottom:var(--title-under-gap); margin-bottom:26px; }
+.hd .title-row { display:flex; align-items:center; justify-content:var(--title-align); gap:20px; }
+.hd .rule { display:var(--title-deco); flex:1; height:3px; background:var(--navy-deep); position:relative; max-width:340px; }
+.hd .rule::before,.hd .rule::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--navy-deep);}
+.hd .rule.l::before{left:-2px;} .hd .rule.r::after{right:-2px;}
+.hd h1 { font-size:calc(38px * var(--title-scale)); font-family:var(--font-title); font-weight:var(--w-title); color:var(--title-ink); letter-spacing:var(--title-track); line-height:1.25; }
+.hd .sub { margin-top:10px; font-size:30px; font-weight:var(--w-label); color:var(--ink-soft); line-height:1.35; }
+.caption { order:var(--caption-order); text-align:var(--caption-align); margin-top:calc(24px * var(--caption-mt)); margin-bottom:var(--caption-mb); font-size:var(--caption-size); font-weight:var(--caption-weight); color:var(--caption-ink); }
+.src { order:20; text-align:left; margin-top:var(--src-gap); font-size:var(--src-size); font-weight:var(--w-body); color:var(--ink-soft); line-height:1.5; white-space:pre-line; }
+.unit { text-align:left; font-size:26px; font-weight:var(--w-label); color:var(--ink-soft); margin:-8px 0 10px; }
+.concl { order:19; font-size:28px; font-weight:var(--w-strong); color:var(--tone-go); line-height:1.42; margin-top:14px; white-space:pre-line; }
+.takeaway { font-size:30px; font-weight:var(--w-strong); color:var(--navy-deep); line-height:1.4; margin:-6px 0 18px; padding-left:16px; border-left:6px solid var(--tone-wait); }
+#figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
+
+.vz-stage { position:relative; margin:0 auto; }
+.vz-stage > svg { position:absolute; left:0; top:0; overflow:visible; }
+.lb { position:absolute; white-space:pre-line; line-height:1.3; text-align:center; z-index:2; color:var(--ink); font-size:27px; font-weight:var(--w-body); }
+.lb.al { text-align:left; } .lb.ar { text-align:right; } .lb.nw { white-space:pre; }
+.lb .h1 { font-size:34px; font-weight:var(--w-title); line-height:1.22; color:var(--navy-deep); }
+.lb .h2 { font-size:29px; font-weight:var(--w-title); line-height:1.24; color:var(--navy-deep); }
+.lb .b  { font-size:27px; font-weight:var(--w-body); color:var(--ink); }
+.lb .bb { font-size:27px; font-weight:var(--w-strong); color:var(--ink); }
+.lb .s  { font-size:24px; font-weight:var(--w-body); color:var(--ink-soft); line-height:1.32; }
+.lb .sb { font-size:24px; font-weight:var(--w-strong); color:var(--ink-soft); line-height:1.32; }
+.lb .v  { font-size:28px; font-weight:var(--w-title); color:var(--ink); font-variant-numeric:tabular-nums; }
+.lb .vs { font-size:24px; font-weight:var(--w-label); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+.lb span.vs { white-space:pre; }
+.lb .big{ font-size:46px; font-weight:var(--w-title); color:var(--navy-deep); line-height:1.05; font-variant-numeric:tabular-nums; }
+.lb.halo div { text-shadow:-2px 0 #fff, 2px 0 #fff, 0 -2px #fff, 0 2px #fff, -2px -2px #fff, 2px 2px #fff, -2px 2px #fff, 2px -2px #fff; }
+.lb.on div { color:#fff; } .lb.on .s { opacity:.92; }
+.lb .bul { text-align:left; padding-left:20px; text-indent:-20px; }
+.lb .bul::before { content:"· "; font-weight:var(--w-title); }
+.lb .tag { display:inline-block; font-size:23px; font-weight:var(--w-strong); color:#fff; background:var(--tone-wait); border-radius:5px; padding:1px 10px 2px; margin-right:10px; text-indent:0; }
+.lb .lim { font-size:25px; font-weight:var(--w-label); color:var(--tone-wait); line-height:1.34; margin-top:6px; text-align:left; }
+.lb .huge { font-size:68px; font-weight:var(--w-title); line-height:1.05; letter-spacing:-1.5px; font-variant-numeric:tabular-nums; }
+.lb .huge small { font-size:34px; font-weight:var(--w-strong); letter-spacing:0; margin-left:4px; }
+.lb .deco { font-size:104px; font-weight:var(--w-title); line-height:1; opacity:.16; }
+.lg { display:flex; flex-wrap:wrap; gap:8px 30px; align-items:center; margin:0 0 14px; font-size:25px; font-weight:var(--w-label); color:var(--ink); }
+.lg span.i { display:inline-flex; align-items:center; gap:9px; }
+.lg i { display:inline-block; width:26px; height:16px; border-radius:3px; }
+.lg i.dot { width:18px; height:18px; border-radius:50%; } .lg i.ln { height:5px; border-radius:3px; }
+svg .ax { stroke:var(--neutral-line); fill:none; stroke-width:2; }
+svg .gr { stroke:var(--grid-line); fill:none; stroke-width:1.5; }
+svg .grd { stroke:var(--grid-line); fill:none; stroke-width:1.5; stroke-dasharray:5 6; }
+svg .ref { stroke:var(--ink-soft); fill:none; stroke-width:2; stroke-dasharray:7 6; }
+</style>
+</head>
+<body>
+<div id="figure"></div>
+<pre id="__layout_issues" style="display:none">[]</pre>
+<script>
+const FIGURE = /*__FIGURE_DATA__*/ null;
+const ICONS  = /*__ICONS__*/ {};
+(function(){
+  const F=FIGURE, root=document.getElementById('figure'), W=1412, NS="http://www.w3.org/2000/svg";
+  const D=F.data||F, kind=F.viz||F.template; root.classList.add('v-'+kind);
+  const CS=getComputedStyle(root), GL=parseFloat(CS.getPropertyValue('--gloss'))||0, SOLID=(parseFloat(CS.getPropertyValue('--solid'))||0)>0;
+  let uid=0; const TN=['main','sub','go','wait','stop','mute'];
+  if(F.title){ const hd=div('hd'),tr=div('title-row'); tr.append(div('rule l'),t('h1',null,F.title),div('rule r')); hd.append(tr);
+    if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd); }
+  if(F.takeaway) root.append(t('div','takeaway',F.takeaway));
+  const R={'funnel-stack':funnelStack,'growing-circles':growingCircles,'circle-chain':circleChain,'ring-core':ringCore,'ribbon-list':ribbonList,'stat-strip':statStrip,
+           'bar-highlight':barHighlight,'bar-line':barLine,'line-highlight':lineHighlight,'slope':slope,'dumbbell':d=>rangeLike(d,'dumbbell'),
+           'range-bar':d=>rangeLike(d,'range'),'bubble-compare':bubbleCompare,'small-multiples':smallMultiples,'stacked-share':stackedShare,
+           'sankey':sankey,'link-map':linkMap,'network':network,
+           'pyramid':pyramidX,'venn':vennX,'cycle':cycleX,'funnel':funnelX,'quadrant':quadrantX,'concentric':concentricX,'hub':hubX,
+           'fishbone':fishboneX,'staircase':staircaseX,'before-after':beforeAfterX,'waterfall':waterfallX,'iceberg':icebergX,'swimlane':swimlaneX,'logic-tree':logicTreeX,
+           'flow-process':flowProcessX,'org-chart':orgChartX,'structure-block':structureBlockX,'layer-stack':layerStackX,'concept-argument':conceptArgumentX,
+           'comparison-matrix':comparisonMatrixX,'matrix-heatmap':matrixHeatmapX,'decision-flow':decisionFlowX,'timeline-gantt':timelineGanttX,'timeline-tracks':timelineTracksX,'pipe-mapping':pipeMappingX};
+  const issues=[];
+  if(!R[kind]) { issues.push('스크립트 오류: 알 수 없는 형태 '+kind); root.append(t('div','caption','[viz] 알 수 없는 형태: '+kind)); }
+  else { try { R[kind](D); } catch(e) { issues.push('스크립트 오류: '+kind+' — '+e.message); const m=t('div','caption','[viz 오류] '+kind+': '+e.message); m.style.color='red'; root.append(m); console.error(e); } }
+  if(F.conclusion) root.append(t('div','concl',F.conclusion));   // 그림 바로 아래 색 글씨 결론 한두 줄 — 제목이 명사구(<그림 n> 관례)일 때
+  if(F.caption) root.append(t('div','caption',F.caption));
+  if(F.footnote) root.append(t('div','src',/^(주|※|Note)/.test(F.footnote)?F.footnote:'주: '+F.footnote));
+  if(F.source) root.append(t('div','src',/^(자료|출처|Source)/.test(F.source)?F.source:'자료: '+F.source));
+  check(); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(check);
+  window.__RENDER_DONE__=true;
+
+  // ───────────────────────── 공용 ─────────────────────────
+  function div(c){const e=document.createElement('div'); if(c)e.className=c; return e;}
+  function t(tag,c,txt){const e=document.createElement(tag); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;}
+  function el(tag,a,st){const e=document.createElementNS(NS,tag); for(const k in (a||{})) e.setAttribute(k,a[k]); if(st) e.setAttribute('style',st); return e;}
+  function stage(h){
+    const s=div('vz-stage'); s.style.width=W+'px'; s.style.height=h+'px';
+    const svg=el('svg',{width:W,height:h,viewBox:'0 0 '+W+' '+h}); svg.append(el('defs'));
+    s.append(svg); root.append(s);
+    return {el:s, svg, defs:svg.firstChild, get h(){return h;}, set h(v){ h=v; s.style.height=v+'px'; svg.setAttribute('height',v); svg.setAttribute('viewBox','0 0 '+W+' '+v); }};
+  }
+  function add(st,tag,a,style){const e=el(tag,a,style); st.svg.append(e); return e;}
+  function tc(n,s){ return 'var(--tone-'+(TN.includes(n)?n:'main')+(s?'-'+s:'')+')'; }
+  function fmt(v,dec){ if(v==null||isNaN(v)) return ''; const d=(dec!=null)?dec:(Math.abs(v)<10&&v%1!==0?1:(v%1!==0?1:0));
+    return Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  // 글자 상자 — anchor: c l r t b tl tr bl br. w 없으면 한 줄.
+  function mk(w,parts,o){ o=o||{}; const e=div('lb '+(o.cls||'')); if(w) e.style.width=w+'px'; else e.classList.add('nw');
+    if(o.align==='l') e.classList.add('al'); if(o.align==='r') e.classList.add('ar'); if(o.color) e.style.color=o.color;
+    if(o.fit) e.dataset.fit=o.fit.join(','); if(o.deco) e.dataset.deco='1';
+    parts.forEach(p=>{ if(p && p[0]!=null && p[0]!==''){ const c=t('div',p[1],String(p[0])); if(p[2]) c.style.color=p[2]; e.append(c); } });
+    return e; }
+  function lab(st,x,y,w,parts,o){ o=o||{}; const e=mk(w,parts,o);
+    const tf={c:'translate(-50%,-50%)',l:'translate(0,-50%)',r:'translate(-100%,-50%)',t:'translate(-50%,0)',b:'translate(-50%,-100%)',tl:'none',tr:'translate(-100%,0)',bl:'translate(0,-100%)',br:'translate(-100%,-100%)'}[o.anchor||'c'];
+    e.style.left=x+'px'; e.style.top=y+'px'; e.style.transform=tf; st.el.append(e); return e; }
+  function measure(w,parts,o){ const e=mk(w,parts,o); e.style.visibility='hidden'; e.style.left='0'; e.style.top='0'; root.append(e);
+    const r={w:e.offsetWidth,h:e.offsetHeight}; e.remove(); return r; }
+  function rad(d){ return d*Math.PI/180; }
+  function grad(st,stops,o){ const id='g'+(++uid), g=el(o&&o.radial?'radialGradient':'linearGradient',Object.assign({id},o&&o.attrs||{x1:0,y1:0,x2:0,y2:1}));
+    stops.forEach(s=>g.append(el('stop',{offset:s[0]},'stop-color:'+s[1]+';stop-opacity:'+(s[2]==null?1:s[2])))); st.defs.append(g); return 'url(#'+id+')'; }
+  function legend(items){ const g=div('lg'); items.forEach(m=>{ const s=t('span','i'), i=t('i',m.shape||''); i.style.background=m.color; s.append(i, document.createTextNode(m.label)); g.append(s); }); root.append(g); return g; }
+  function niceTicks(lo,hi,n){ n=n||5; if(hi===lo) hi=lo+1; const raw=(hi-lo)/n, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p, step=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;
+    const a=Math.floor(lo/step)*step, b=Math.ceil(hi/step)*step, out=[]; for(let v=a; v<=b+step*1e-6; v+=step) out.push(Math.round(v/step)*step); return out; }
+  function tickDec(tk){ const s=tk.length>1?Math.abs(tk[1]-tk[0]):1; return s>=1?0:(s>=0.1?1:2); }
+  // 세로로 겹치는 이름표를 밀어 벌린다 (y 오름차순, 최소 간격 gap, 범위 lo~hi)
+  function spread(ys,gap,lo,hi){ const idx=ys.map((y,i)=>i).sort((a,b)=>ys[a]-ys[b]), out=ys.slice();
+    for(let k=1;k<idx.length;k++){ if(out[idx[k]]-out[idx[k-1]]<gap) out[idx[k]]=out[idx[k-1]]+gap; }
+    const over=out[idx[idx.length-1]]-hi; if(over>0){ for(let k=idx.length-1;k>=0;k--){ out[idx[k]]-=over; if(k>0 && out[idx[k]]-out[idx[k-1]]>=gap) break; else if(k>0) out[idx[k-1]]=Math.min(out[idx[k-1]],out[idx[k]]-gap); } }
+    return out.map(v=>Math.max(lo,v)); }
+  function check(){
+    const out=issues.slice();
+    root.querySelectorAll('.vz-stage').forEach(s=>{ const B=s.getBoundingClientRect();
+      const L=[...s.querySelectorAll('.lb')].filter(e=>e.textContent.trim() && !e.dataset.deco).map(e=>{ const r=document.createRange(); r.selectNodeContents(e); const q=r.getBoundingClientRect();
+        return {e,l:q.left,t:q.top,r:q.right,b:q.bottom,txt:e.textContent.trim().replace(/\s+/g,' ').slice(0,16)}; });
+      L.forEach(a=>{ if(a.l<B.left-4||a.r>B.right+4||a.t<B.top-4||a.b>B.bottom+4) out.push("글자가 그림 밖으로 나감: '"+a.txt+"'");
+        if(a.e.dataset.fit){ const f=a.e.dataset.fit.split(',').map(Number); if((a.r-a.l)>f[0]+3||(a.b-a.t)>f[1]+3) out.push("글자가 도형보다 큼(글을 줄일 것): '"+a.txt+"'"); }
+        if(a.e.scrollWidth>a.e.clientWidth+3) out.push("글자가 칸을 넘침: '"+a.txt+"'"); });
+      for(let i=0;i<L.length;i++) for(let j=i+1;j<L.length;j++){ const a=L[i], b=L[j], ix=Math.min(a.r,b.r)-Math.max(a.l,b.l), iy=Math.min(a.b,b.b)-Math.max(a.t,b.t);
+        if(ix>4&&iy>4) out.push("글자 겹침: '"+a.txt+"' × '"+b.txt+"'"); }
+    });
+    document.getElementById('__layout_issues').textContent=JSON.stringify([...new Set(out)]);
+  }
+
+  // ═════════════════════════ 구조도 ═════════════════════════
+  // ───────── funnel-stack 쌓은 깔때기 ─────────
+  // stages[{name,sub,core,core_sub,desc,limit{tag,text},tone,next{text,desc}}]  numbered:true 면 옅은 큰 번호
+  function funnelStack(d){
+    const S=d.stages, n=S.length, cx=590, W0=d.top_width||520, nameX=30, nameW=cx-W0/2-nameX-36, descX=cx+W0/2+92, descW=W-descX-8;
+    const ratio=Math.pow(Math.max(0.3,(d.bottom_width||170)/W0),1/n), def=i=>i===n-1?'wait':(i===0?'go':(i===n-2&&n>2?'main':'sub'));
+    const descParts=o=>{ const p=[]; if(!o) return p; [].concat(o.desc||[]).forEach(x=>p.push([x,'b'])); return p; };
+    const st=stage(100); let y=d.numbered?46:14; const G=[];
+    S.forEach((s,i)=>{ const tn=s.tone||def(i), tw=W0*Math.pow(ratio,i), bw=tw*Math.pow(ratio,0.8);
+      const dp=descParts(s), dh=measure(descW,dp,{align:'l'}).h + (s.limit?measure(descW,[[(s.limit.tag||'')+'  '+s.limit.text,'lim']],{align:'l'}).h+6:0);
+      const nh=measure(nameW,[[s.name,'h2'],[s.sub,'s']],{align:'l'}).h, ch=measure(bw-30,[[s.core,'h2'],[s.core_sub,'s']]).h;
+      const bh=Math.max(128,dh+32,nh+36,ch+52), nx=s.next, nt=nx?(typeof nx==='string'?{text:nx}:nx):null;
+      const gh=(i<n-1)?Math.max(46,nt?Math.max(measure(tw*ratio+60,[[nt.text,'bb']]).h,measure(descW,descParts(nt),{align:'l'}).h)+58:46):0;
+      G.push({s,tn,tw,bw,y,bh,gh,nt,dp}); y+=bh+gh; });
+    st.h=y+26;
+    G.forEach((g,i)=>{ const s=g.s, y0=g.y, y1=g.y+g.bh, spout=(i<n-1?20:14), yb=y1+spout, a=g.tw/2, b=g.bw/2, cy=(y0+y1)/2;
+      add(st,'rect',{x:0,y:y0,width:W,height:g.bh},'fill:'+tc(g.tn,'tint'));
+      if(d.numbered) lab(st,nameX-6,y0-58,0,[[String(i+1),'deco',tc(g.tn)]],{anchor:'tl',deco:1});
+      if(SOLID){ const ry=Math.max(10,g.tw*0.04), rb=Math.max(7,g.bw*0.05), yt=y0-4;
+        const p=`M${cx-a} ${yt} C ${cx-a} ${yt+(yb-yt)*0.5}, ${cx-b} ${yb-(yb-yt)*0.42}, ${cx-b} ${yb-rb} A ${b} ${rb} 0 0 0 ${cx+b} ${yb-rb} C ${cx+b} ${yb-(yb-yt)*0.42}, ${cx+a} ${yt+(yb-yt)*0.5}, ${cx+a} ${yt} A ${a} ${ry} 0 0 1 ${cx-a} ${yt} Z`;
+        add(st,'path',{d:p},'fill:'+tc(g.tn));
+        if(GL>0) add(st,'path',{d:p},'fill:'+grad(st,[[0,'#000',GL*0.9],[0.3,'#fff',GL*0.9],[0.62,'#fff',0],[1,'#000',GL*1.3]],{attrs:{x1:0,y1:0,x2:1,y2:0}}));
+        add(st,'ellipse',{cx,cy:yt,rx:a,ry},'fill:'+tc(g.tn));
+        add(st,'ellipse',{cx,cy:yt,rx:a,ry},'fill:#fff;fill-opacity:'+(0.18+GL*0.6));
+        add(st,'ellipse',{cx,cy:yt+ry*0.18,rx:a*0.9,ry:ry*0.62},'fill:'+tc(g.tn)+';fill-opacity:.55');
+      } else add(st,'polygon',{points:`${cx-a},${y0} ${cx+a},${y0} ${cx+b},${yb} ${cx-b},${yb}`},'fill:'+tc(g.tn));
+      lab(st,nameX,cy,nameW,[[s.name,'h2'],[s.sub,'s']],{anchor:'l',align:'l'});
+      lab(st,cx,cy+(SOLID?10:8),g.bw-30,[[s.core,'h2'],[s.core_sub,'s']],{cls:'on',fit:[g.bw-10,g.bh+spout-14]});
+      const dl=lab(st,descX,cy,descW,g.dp,{anchor:'l',align:'l'});
+      if(s.limit){ const lm=t('div','lim'); if(s.limit.tag) lm.append(t('span','tag',s.limit.tag)); lm.append(document.createTextNode(s.limit.text)); dl.append(lm); }
+      arrow(st,cx+a+18,cy,descX-18);
+      if(g.nt){ const gy=yb+(g.gh-spout)/2+2; lab(st,cx,gy,g.tw*ratio+60,[[g.nt.text,'bb']]);
+        const np=descParts(g.nt); if(np.length){ lab(st,descX,gy,descW,np,{anchor:'l',align:'l'}); arrow(st,cx+(g.tw*ratio+60)/2+14,gy,descX-18); } }
+    });
+    function arrow(st,x1,y,x2){ if(x2-x1<26) return; const h=11;
+      add(st,'path',{d:`M${x1} ${y-5} L${x2-16} ${y-5} L${x2-16} ${y-h-3} L${x2} ${y} L${x2-16} ${y+h+3} L${x2-16} ${y+5} L${x1} ${y+5} Z`},
+        'fill:'+(GL>0?grad(st,[[0,'#fff',0],[1,'var(--neutral-line)',1]],{attrs:{x1:0,y1:0,x2:1,y2:0}}):'var(--neutral-line)')); }
+  }
+
+  // ───────── growing-circles 커지는 원 ─────────
+  // items[{label,sub,note,highlight}] 3~6 — 왼쪽 아래에서 오른쪽 위로 커진다. 마지막(또는 highlight)이 강조색
+  function growingCircles(d){
+    const it=d.items, n=it.length, r0=d.r_min||64, r1=d.r_max||(n<=4?132:122), ang=rad(d.angle||33), ov=d.overlap==null?18:d.overlap, noteW=d.note_w||340, tn=d.tone||'go';
+    const rs=it.map((_,i)=>r0+(r1-r0)*(n===1?1:i/(n-1))), P=[[0,0]];
+    for(let i=1;i<n;i++){ const ds=rs[i]+rs[i-1]-ov; P.push([P[i-1][0]+ds*Math.cos(ang),P[i-1][1]-ds*Math.sin(ang)]); }
+    const hi=it.map((m,i)=>m.highlight||(!it.some(q=>q.highlight)&&i===n-1));
+    const N=it.map((m,i)=>{ if(!m.note) return null; const up=(i%2===0), parts=[[m.note_title,'bb'],[m.note,'b']], h=measure(noteW,parts).h, kx=0.94, ky=0.36, X=P[i][0], Y=P[i][1], r=rs[i];
+      return up?{x:X-r*kx,y:Y-r*ky,an:'br',al:'r',x0:X-r*kx-noteW,x1:X-r*kx,y0:Y-r*ky-h,y1:Y-r*ky,parts}
+               :{x:X+r*kx,y:Y+r*ky,an:'tl',al:'l',x0:X+r*kx,x1:X+r*kx+noteW,y0:Y+r*ky,y1:Y+r*ky+h,parts}; });
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    P.forEach((p,i)=>{ x0=Math.min(x0,p[0]-rs[i]); x1=Math.max(x1,p[0]+rs[i]); y0=Math.min(y0,p[1]-rs[i]); y1=Math.max(y1,p[1]+rs[i]); });
+    N.forEach(q=>{ if(!q) return; x0=Math.min(x0,q.x0); x1=Math.max(x1,q.x1); y0=Math.min(y0,q.y0); y1=Math.max(y1,q.y1); });
+    const ox=(W-(x1-x0))/2-x0, oy=14-y0, st=stage(y1-y0+28);
+    if(d.axis){ const a=P[0], b=P[n-1], ux=Math.cos(ang), uy=-Math.sin(ang), off=rs[0]+34;   // 변화 방향 화살표(원 아래로 나란히)
+      const sx=a[0]+ox+uy*-off, sy=a[1]+oy+ux*off; void sx; void sy; }
+    P.forEach((p,i)=>{ const x=p[0]+ox, y=p[1]+oy, r=rs[i], op=hi[i]?1:(0.38+0.62*(n===1?1:i/(n-1))), tone=hi[i]?(d.highlight_tone||'wait'):tn;
+      add(st,'circle',{cx:x,cy:y,r:r+5},'fill:#fff');
+      add(st,'circle',{cx:x,cy:y,r},'fill:'+tc(tone)+';fill-opacity:'+op.toFixed(2));
+      if(GL>0) add(st,'circle',{cx:x,cy:y,r},'fill:'+grad(st,[[0,'#fff',GL*1.5],[0.7,'#fff',0],[1,'#000',GL*0.7]],{radial:1,attrs:{cx:0.36,cy:0.3,r:0.85}}));
+      const dark=op<0.72; lab(st,x,y,r*1.62,[[it[i].label,r<82?'h2':'h1',dark?tc('main'):null],[it[i].sub,'b',dark?tc('main'):null]],{cls:dark?'':'on',fit:[r*1.9,r*1.7]});
+      const q=N[i]; if(q) lab(st,q.x+ox,q.y+oy,noteW,q.parts,{anchor:q.an,align:q.al});
+    });
+  }
+
+  // ───────── circle-chain 겹치는 원 사슬 ─────────
+  // head, from{title,sub}, items[{title,desc,note,tone}] 2~5, to{title,sub,tone}
+  function circleChain(d){
+    const it=d.items, n=it.length, r=d.r||(n<=3?128:n===4?112:98), ov=r*0.24, pw=d.pill_w||200, ag=54;
+    const span=2*r+(n-1)*(2*r-ov), tot=(d.from?pw+ag:0)+span+(d.to?ag+pw:0), x0=(W-tot)/2+(d.from?pw+ag:0), top=d.head?40:16, cy=top+r+22;
+    const noteH=Math.max(0,...it.map(m=>m.note?measure(2*r-ov-10,[[m.note,'b']]).h:0)), st=stage(cy+r+22+(noteH?noteH+22:0)+12);
+    add(st,'rect',{x:x0-24,y:cy-r-22,width:span+48,height:2*r+44,rx:r+22},'fill:var(--fill-faint);stroke:var(--line-soft);stroke-width:2');
+    if(d.head){ const hw=measure(0,[[d.head,'h2']]).w+56; add(st,'rect',{x:x0+span/2-hw/2,y:cy-r-22-24,width:hw,height:48,rx:24},'fill:'+tc('main')); lab(st,x0+span/2,cy-r-22,0,[[d.head,'h2']],{cls:'on'}); }
+    it.forEach((m,i)=>{ const x=x0+r+i*(2*r-ov), tn=m.tone||(['sub','go','main','wait','mute'][i%5]);
+      add(st,'circle',{cx:x,cy,r},'fill:'+tc(tn,'tint')+';fill-opacity:.82;stroke:'+tc(tn)+';stroke-width:'+(GL>0?5:4));
+      if(GL>0) add(st,'circle',{cx:x,cy,r:r-3},'fill:'+grad(st,[[0,'#fff',GL*2.2],[0.75,'#fff',0]],{radial:1,attrs:{cx:0.35,cy:0.28,r:0.8}}));
+      lab(st,x,cy,2*r-2*ov-18,[[m.title,'h2',tc(tn)],[m.desc,'b']],{fit:[2*r-ov,1.6*r]});
+      if(m.note) lab(st,x,cy+r+38,2*r-ov-10,[[m.note,'b']],{anchor:'t'}); });
+    const pill=(o,x,tn)=>{ const h=Math.max(92,measure(pw-28,[[o.title,'h2'],[o.sub,'b']]).h+28);
+      add(st,'rect',{x,y:cy-h/2,width:pw,height:h,rx:Math.min(h/2,46)},'fill:'+tc(tn));
+      if(GL>0) add(st,'rect',{x,y:cy-h/2,width:pw,height:h,rx:Math.min(h/2,46)},'fill:'+grad(st,[[0,'#fff',GL*1.2],[1,'#000',GL*0.6]]));
+      lab(st,x+pw/2,cy,pw-28,[[o.title,'h2'],[o.sub,'b']],{cls:'on',fit:[pw-8,h-6]}); };
+    const chev=(x)=>{ for(let k=0;k<2;k++){ const xx=x+k*16; add(st,'path',{d:`M${xx} ${cy-15} L${xx+14} ${cy} L${xx} ${cy+15}`},'fill:none;stroke:'+tc('mute')+';stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:'+(k?1:.5)); } };
+    if(d.from){ const fx=x0-24-ag-pw+24; pill(d.from,fx,d.from.tone||'main'); chev(fx+pw+12); }
+    if(d.to){ const tx=x0+span+24+ag-24; pill(d.to,tx,d.to.tone||'go'); chev(tx-ag+12); }
+  }
+
+  // ───────── ring-core 순환 고리와 핵심어 ─────────
+  // core{title,sub}, left{tag,text}, right{tag,text}, panels[{num,title,items[],tone}] 0·2·4개 (왼위·오른위·왼아래·오른아래)
+  function ringCore(d){
+    const P=d.panels||[], Rr=d.r||112, rw=30, halo=Rr+rw/2+12, colGap=200, pw=(W-colGap)/2, cx=W/2, pad=20, bandH=104;
+    const body=p=>[].concat(p.items||[]).map(x=>[x,'b bul']);
+    const ph=p=>p?64+measure(pw-2*pad,body(p),{align:'l'}).h+2*pad-6:0;
+    const hTop=Math.max(ph(P[0]),ph(P[1])), hBot=Math.max(ph(P[2]),ph(P[3]));
+    const yBand=(hTop?hTop+26:Math.max(0,halo-bandH/2)+8), cy=yBand+bandH/2, st=stage(Math.max(cy+halo+10,yBand+bandH+(hBot?26+hBot:0)+8));
+    const panel=(p,x,y,h)=>{ if(!p) return; const tn=p.tone||'go';
+      add(st,'rect',{x,y,width:pw,height:h,rx:10},'fill:var(--card-fill);stroke:'+tc(tn,'line')+';stroke-width:2.5');
+      add(st,'rect',{x:x+9,y:y+9,width:pw-18,height:50,rx:6},'fill:'+tc(tn,'tint'));
+      if(p.num!=null){ add(st,'rect',{x:x+9,y:y+9,width:50,height:50,rx:6},'fill:'+tc(tn)); lab(st,x+34,y+34,0,[[String(p.num),'h2']],{cls:'on'}); }
+      lab(st,x+(p.num!=null?74:24),y+34,pw-(p.num!=null?96:46),[[p.title,'h2',tc(tn)]],{anchor:'l',align:'l'});
+      lab(st,x+pad,y+70,pw-2*pad,body(p),{anchor:'tl',align:'l'}); };
+    panel(P[0],0,0,hTop); panel(P[1],W-pw,0,hTop); panel(P[2],0,yBand+bandH+26,hBot); panel(P[3],W-pw,yBand+bandH+26,hBot);
+    add(st,'rect',{x:0,y:yBand,width:W,height:bandH},'fill:var(--neutral-fill)');
+    const side=(o,left)=>{ if(!o) return; const tw=o.tag?measure(0,[[o.tag,'sb']]).w+40:0, edge=left?cx-halo-18:cx+halo+18;
+      if(o.tag){ const tx=left?edge-tw:edge; add(st,'rect',{x:tx,y:cy-22,width:tw,height:44,rx:22},'fill:'+tc('main')); lab(st,tx+tw/2,cy,0,[[o.tag,'sb']],{cls:'on'}); }
+      const ex=left?edge-tw-(tw?18:0):edge+tw+(tw?18:0); lab(st,ex,cy,left?ex-16:W-ex-16,[[o.text,'h2']],{anchor:left?'r':'l',align:left?'r':'l',fit:[W,bandH-8]}); };
+    side(d.left,true); side(d.right,false);
+    add(st,'circle',{cx,cy,r:halo},'fill:#fff');
+    const arc=(a0,a1,col)=>{ const p=a=>[cx+Rr*Math.cos(rad(a)),cy+Rr*Math.sin(rad(a))], s=p(a0), e=p(a1-13), big=(a1-a0)>180?1:0;
+      add(st,'path',{d:`M${s[0]} ${s[1]} A ${Rr} ${Rr} 0 ${big} 1 ${e[0]} ${e[1]}`},'fill:none;stroke:'+col+';stroke-width:'+rw);
+      const tip=p(a1), n1=[Math.cos(rad(a1-13)),Math.sin(rad(a1-13))], hw=rw*0.95;
+      add(st,'polygon',{points:`${e[0]+n1[0]*hw},${e[1]+n1[1]*hw} ${tip[0]},${tip[1]} ${e[0]-n1[0]*hw},${e[1]-n1[1]*hw}`},'fill:'+col); };
+    const cA=tc(d.tone_a||'go'), cB=tc(d.tone_b||'main');
+    arc(-70,98,GL>0?grad(st,[[0,cA],[1,cB]],{attrs:{x1:0.2,y1:0,x2:0.9,y2:1}}):cA);
+    arc(110,278,GL>0?grad(st,[[0,cA],[1,cB]],{attrs:{x1:0.9,y1:0,x2:0.1,y2:1}}):cB);
+    lab(st,cx,cy,2*(Rr-rw/2)-22,[[d.core.title,'h2',tc(d.tone_a||'go')],[d.core.sub,'s']],{fit:[2*(Rr-rw/2)-6,2*(Rr-rw/2)-26]});
+  }
+
+  // ───────── ribbon-list 꼬리표 목록 ─────────
+  // items[{text,tone}] 2~6 — 아래로 갈수록 길어지는 띠. 번호는 본문이 매긴 순서일 때만 numbered:true
+  function ribbonList(d){
+    const it=d.items, n=it.length, h=64, gap=12, w0=d.first_width||Math.round(W*0.62), step=n>1?(W-30-w0)/(n-1):0, st=stage(n*(h+gap)+8);
+    it.forEach((m,i)=>{ const y=4+i*(h+gap), w=w0+step*i, tn=m.tone||(i===n-1?'go':(i===0?'main':'sub')), sl=30;
+      const p=`0,${y} ${w-sl},${y} ${w},${y+h} 0,${y+h}`;
+      add(st,'polygon',{points:p},'fill:'+tc(tn));
+      if(GL>0) add(st,'polygon',{points:p},'fill:'+grad(st,[[0,'#fff',0],[1,'#fff',GL*1.3]],{attrs:{x1:0,y1:0,x2:1,y2:0}}));
+      let tx=26; if(d.numbered){ add(st,'circle',{cx:44,cy:y+h/2,r:20},'fill:#fff'); lab(st,44,y+h/2,0,[[String(i+1),'h2',tc(tn)]]); tx=78; }
+      lab(st,tx,y+h/2,0,[[m.text,'h2']],{anchor:'l',align:'l',cls:'on',fit:[w-tx-sl-8,h]}); });
+  }
+
+  // ───────── stat-strip 큰 숫자 묶음 ─────────
+  // items[{value,unit,label,note,share,tone,highlight}] 2~5 — 큰 숫자 + 무엇의 숫자인지 + 한 줄 설명. share(0~1)를 주면 아래에 비율 막대
+  function statStrip(d){
+    const it=d.items, n=it.length, cw=W/n, pad=28, tw=cw-2*pad, bar=it.some(m=>m.share!=null);
+    const hs=it.map(m=>measure(tw,[[m.label,'h2'],[m.note,'s']],{align:'l'}).h), top=18, vh=78, H=top+vh+(bar?34:12)+Math.max(...hs)+22, st=stage(H);
+    it.forEach((m,i)=>{ const x=i*cw, tn=m.tone||(m.highlight?'wait':(d.tone||'go')), c=tc(tn);
+      if(m.highlight) add(st,'rect',{x:x+6,y:0,width:cw-12,height:H,rx:10},'fill:'+tc(tn,'tint'));
+      if(i>0) add(st,'line',{x1:x,y1:top,x2:x,y2:H-top}).setAttribute('class','gr');
+      const v=lab(st,x+pad,top,0,[],{anchor:'tl',align:'l'}), hv=t('div','huge',String(m.value)); hv.style.color=c; if(m.unit){ hv.append(t('small',null,m.unit)); } v.append(hv); v.dataset.fit=[tw,vh+8].join(',');
+      let y=top+vh+6;
+      if(bar){ if(m.share!=null){ add(st,'rect',{x:x+pad,y,width:tw,height:12,rx:6},'fill:'+tc(tn,'tint')+';stroke:'+tc(tn,'line')+';stroke-width:1'); add(st,'rect',{x:x+pad,y,width:Math.max(6,tw*Math.min(1,m.share)),height:12,rx:6},'fill:'+c);
+          if(GL>0) add(st,'rect',{x:x+pad,y,width:Math.max(6,tw*Math.min(1,m.share)),height:12,rx:6},'fill:'+grad(st,[[0,'#fff',GL*1.6],[1,'#fff',0]])); } y+=28; }
+      lab(st,x+pad,y,tw,[[m.label,'h2'],[m.note,'s']],{anchor:'tl',align:'l'}); });
+  }
+
+  // ═════════════════════════ 데이터 그래프 ═════════════════════════
+  function unitLine(u){ if(u) root.append(t('div','unit',/^\(/.test(u)?u:'(단위: '+u+')')); }
+  // ───────── bar-highlight 강조 막대 ─────────
+  // items[{label,value,highlight,tone,note}], unit, orient:"h"|"v", ref{value,label}, decimals
+  function barHighlight(d){
+    const it=d.items.slice(), n=it.length, dec=d.decimals, vals=it.map(m=>m.value), lo=Math.min(0,...vals,(d.ref?d.ref.value:0)), hi=Math.max(0,...vals,(d.ref?d.ref.value:0));
+    unitLine(d.unit);
+    const anyHot=it.some(m=>m.highlight);   // 강조가 하나도 없으면 값 순서로만 말하는 단색 막대(해외 보고서에 흔한 기본형)
+    const col=m=>m.highlight?tc(m.tone||'main'):(m.tone?tc(m.tone,anyHot?'line':''):(anyHot?'var(--tone-mute-line)':tc(d.tone||'sub')));
+    if((d.orient||'h')==='h'){
+      const lw=Math.min(400,Math.max(...it.map(m=>measure(0,[[m.label,m.highlight?'bb':'b']]).w))+18), vw=Math.max(...it.map(m=>measure(0,[[fmt(m.value,dec),'v']]).w))+16;
+      const nw=Math.max(0,...it.map(m=>m.note?Math.min(380,measure(0,[[m.note,'s']]).w+20):0)), rh=n<=6?62:n<=10?52:46, bh=Math.round(rh*0.6), top=d.ref?44:8;
+      const x0=lw+12, x1=W-vw-nw-6, sc=v=>x0+(v-lo)/(hi-lo||1)*(x1-x0), st=stage(top+n*rh+10), zx=sc(0);
+      it.forEach((m,i)=>{ const y=top+i*rh, a=Math.min(zx,sc(m.value)), b=Math.max(zx,sc(m.value));
+        add(st,'rect',{x:a,y:y+(rh-bh)/2,width:Math.max(2,b-a),height:bh,rx:SOLID?4:0},'fill:'+col(m));
+        if(GL>0&&m.highlight) add(st,'rect',{x:a,y:y+(rh-bh)/2,width:Math.max(2,b-a),height:bh,rx:4},'fill:'+grad(st,[[0,'#fff',0],[1,'#fff',GL*1.4]],{attrs:{x1:0,y1:0,x2:1,y2:0}}));
+        lab(st,lw,y+rh/2,0,[[m.label,m.highlight?'bb':'b',m.highlight?tc(m.tone||'main'):null]],{anchor:'r',align:'r'});
+        const vx=(m.value>=0?b:a)+(m.value>=0?10:-10);
+        const vl=lab(st,vx,y+rh/2,0,[[fmt(m.value,dec),m.highlight?'v':'vs',m.highlight?tc(m.tone||'main'):null]],{anchor:m.value>=0?'l':'r'});
+        if(m.note) lab(st,x1+vw+8,y+rh/2,nw-10,[[m.note,'s']],{anchor:'l',align:'l'}); void vl; });
+      if(lo<0) add(st,'line',{x1:zx,y1:top,x2:zx,y2:top+n*rh},'stroke:var(--ink-soft);stroke-width:2');
+      if(d.ref){ const rx=sc(d.ref.value); add(st,'line',{x1:rx,y1:top-6,x2:rx,y2:top+n*rh+2}).setAttribute('class','ref');
+        lab(st,rx,top-10,0,[[(d.ref.label||'')+' '+fmt(d.ref.value,dec),'sb']],{anchor:rx>W-260?'br':(rx<x0+200?'bl':'b')}); }
+    } else {
+      const H=d.height||470, top=46, bot=H-8, labH=Math.max(...it.map(m=>measure(Math.floor((W-20)/n)-10,[[m.label,'b']]).h)), y0=bot-labH-12;
+      const sc=v=>y0-(v-lo)/(hi-lo||1)*(y0-top), slot=(W-20)/n, bw=Math.min(120,slot*0.62), st=stage(H), zy=sc(0);
+      it.forEach((m,i)=>{ const xc=10+slot*(i+0.5), a=Math.min(zy,sc(m.value)), b=Math.max(zy,sc(m.value));
+        add(st,'rect',{x:xc-bw/2,y:a,width:bw,height:Math.max(2,b-a),rx:SOLID?4:0},'fill:'+col(m));
+        if(GL>0&&m.highlight) add(st,'rect',{x:xc-bw/2,y:a,width:bw,height:Math.max(2,b-a),rx:4},'fill:'+grad(st,[[0,'#fff',GL*1.4],[1,'#fff',0]]));
+        lab(st,xc,(m.value>=0?a-6:b+6),0,[[fmt(m.value,dec),m.highlight?'v':'vs',m.highlight?tc(m.tone||'main'):null]],{anchor:m.value>=0?'b':'t'});
+        lab(st,xc,y0+10,slot-10,[[m.label,m.highlight?'bb':'b',m.highlight?tc(m.tone||'main'):null]],{anchor:'t'}); });
+      add(st,'line',{x1:0,y1:zy,x2:W,y2:zy},'stroke:var(--ink-soft);stroke-width:2');
+      if(d.ref){ const ry=sc(d.ref.value); add(st,'line',{x1:0,y1:ry,x2:W,y2:ry}).setAttribute('class','ref');
+        lab(st,W-4,ry-6,0,[[(d.ref.label||'')+' '+fmt(d.ref.value,dec),'sb']],{anchor:'br'}); }
+    }
+  }
+
+  // ───────── bar-line 막대+선 결합 ─────────
+  // x[], bars{label,unit,values[],tone}, line{label,unit,values[],tone}, highlight_x, decimals, line_decimals
+  function barLine(d){
+    const X=d.x, n=X.length, B=d.bars, L=d.line, bt=B.tone||'sub', lt=L.tone||'wait', H=d.height||520;
+    legend([{label:B.label+(B.unit?' ('+B.unit+')':''),color:tc(bt,'line')},{label:L.label+(L.unit?' ('+L.unit+')':''),color:tc(lt),shape:'ln'}]);
+    const tk=niceTicks(Math.min(0,...B.values),Math.max(...B.values),5), td=tickDec(tk), yw=Math.max(...tk.map(v=>measure(0,[[fmt(v,td),'vs']]).w))+14;
+    const top=52, y0=H-52, x0=yw+6, x1=W-10, slot=(x1-x0)/n, bw=Math.min(96,slot*0.56), st=stage(H);
+    const sb=v=>y0-(v-tk[0])/(tk[tk.length-1]-tk[0])*(y0-top);
+    const lv=L.values.filter(v=>v!=null), ll=Math.min(...lv), lh=Math.max(...lv), padL=(lh-ll||1)*0.18, sl=v=>(y0-8)-(v-(ll-padL))/((lh+padL)-(ll-padL))*(y0-8-top-6);
+    tk.forEach(v=>{ add(st,'line',{x1:x0,y1:sb(v),x2:x1,y2:sb(v)}).setAttribute('class',v===0?'ax':'gr'); lab(st,x0-10,sb(v),0,[[fmt(v,td),'vs']],{anchor:'r'}); });
+    X.forEach((xl,i)=>{ const xc=x0+slot*(i+0.5), hot=(d.highlight_x!=null&&String(d.highlight_x)===String(xl)), v=B.values[i];
+      if(v!=null){ add(st,'rect',{x:xc-bw/2,y:sb(Math.max(v,0)),width:bw,height:Math.max(2,Math.abs(sb(v)-sb(0))),rx:SOLID?3:0},'fill:'+(hot?tc(bt):tc(bt,'line')));
+        if(GL>0) add(st,'rect',{x:xc-bw/2,y:sb(Math.max(v,0)),width:bw,height:Math.max(2,Math.abs(sb(v)-sb(0))),rx:3},'fill:'+grad(st,[[0,'#fff',GL*1.5],[1,'#fff',0]])); }
+      if(n<=14||i%Math.ceil(n/12)===0||i===n-1) lab(st,xc,y0+12,0,[[xl,hot?'sb':'s',hot?tc('main'):null]],{anchor:'t'}); });
+    const pts=L.values.map((v,i)=>v==null?null:[x0+slot*(i+0.5),sl(v)]).filter(Boolean);
+    add(st,'polyline',{points:pts.map(p=>p.join(',')).join(' ')},'fill:none;stroke:'+tc(lt)+';stroke-width:5;stroke-linejoin:round;stroke-linecap:round');
+    const every=n<=8?1:Math.ceil(n/6), ld=d.line_decimals;
+    L.values.forEach((v,i)=>{ if(v==null) return; const x=x0+slot*(i+0.5), y=sl(v); add(st,'circle',{cx:x,cy:y,r:8},'fill:#fff;stroke:'+tc(lt)+';stroke-width:4');
+      if(i%every===0||i===n-1) lab(st,x,y-14,0,[[fmt(v,ld),'v',tc(lt)]],{anchor:'b',cls:'halo'}); });
+  }
+
+  // ───────── line-highlight 강조 선 ─────────
+  // x[], series[{label,values[],highlight,tone}], unit, decimals — 강조 계열만 색, 나머지는 회색. 끝에 이름표
+  function lineHighlight(d){
+    const X=d.x, n=X.length, S=d.series, dec=d.decimals, H=d.height||540, all=[].concat(...S.map(s=>s.values.filter(v=>v!=null)));
+    unitLine(d.unit);
+    const tk=niceTicks(d.zero===false?Math.min(...all):Math.min(0,...all),Math.max(...all),5), td=tickDec(tk), yw=Math.max(...tk.map(v=>measure(0,[[fmt(v,td),'vs']]).w))+14;
+    const ew=Math.min(400,Math.max(...S.map(s=>measure(0,[[s.label+' '+fmt(s.values[s.values.length-1],dec),s.highlight?'bb':'b']]).w))+26);
+    const top=20, y0=H-52, x0=yw+6, x1=W-ew, st=stage(H), sx=i=>x0+(n===1?0.5:i/(n-1))*(x1-x0), sy=v=>y0-(v-tk[0])/(tk[tk.length-1]-tk[0])*(y0-top);
+    tk.forEach(v=>{ add(st,'line',{x1:x0,y1:sy(v),x2:x1,y2:sy(v)}).setAttribute('class',v===0?'ax':'gr'); lab(st,x0-10,sy(v),0,[[fmt(v,td),'vs']],{anchor:'r'}); });
+    const every=Math.max(1,Math.ceil(n/8)); X.forEach((xl,i)=>{ if(i%every===0||i===n-1){ if(i!==n-1&&(n-1-i)<every*0.6) return; lab(st,sx(i),y0+12,0,[[xl,'s']],{anchor:i===n-1?'tr':(i===0?'tl':'t')}); } });
+    const ord=S.map((s,i)=>i).sort((a,b)=>(S[a].highlight?1:0)-(S[b].highlight?1:0)), ends=[];
+    ord.forEach(k=>{ const s=S[k], c=s.highlight?tc(s.tone||'main'):(s.tone?tc(s.tone,'line'):'var(--tone-mute-line)');
+      const pts=s.values.map((v,i)=>v==null?null:[sx(i),sy(v)]).filter(Boolean), last=pts[pts.length-1];
+      add(st,'polyline',{points:pts.map(p=>p.join(',')).join(' ')},'fill:none;stroke:'+c+';stroke-width:'+(s.highlight?6:3.5)+';stroke-linejoin:round;stroke-linecap:round');
+      if(s.highlight) add(st,'circle',{cx:last[0],cy:last[1],r:9},'fill:'+c+';stroke:#fff;stroke-width:3');
+      ends.push({s,c,y:last[1],x:last[0]}); });
+    const lab_=ends.filter(e=>e.s.highlight||S.length<=6||e.s.label_end), ys=spread(lab_.map(e=>e.y),32,top+8,y0-6);
+    lab_.forEach((e,i)=>{ const v=e.s.values[e.s.values.length-1];
+      if(Math.abs(ys[i]-e.y)>6) add(st,'line',{x1:e.x+10,y1:e.y,x2:e.x+20,y2:ys[i]},'stroke:var(--neutral-line);stroke-width:2');
+      lab(st,e.x+24,ys[i],0,[[e.s.label+' '+fmt(v,dec),e.s.highlight?'bb':'b',e.s.highlight?e.c:null]],{anchor:'l'}); });
+  }
+
+  // ───────── slope 기울기 ─────────
+  // from_label,to_label, items[{label,from,to,highlight,tone}], unit, decimals
+  function slope(d){
+    const it=d.items, dec=d.decimals, all=[].concat(...it.map(m=>[m.from,m.to])), lo=Math.min(...all), hi=Math.max(...all), H=d.height||Math.max(420,Math.min(760,it.length*64+120));
+    unitLine(d.unit);
+    const lw=Math.max(...it.map(m=>measure(0,[[m.label+'  '+fmt(m.from,dec),m.highlight?'bb':'b']]).w))+20, rw=Math.max(...it.map(m=>measure(0,[[fmt(m.to,dec)+'  '+m.label,m.highlight?'bb':'b']]).w))+20;
+    const gapW=Math.min(560,W-lw-rw-40), xa=(W-(lw+gapW+rw))/2+lw, xb=xa+gapW, top=64, bot=H-18, st=stage(H), sy=v=>bot-(v-lo)/(hi-lo||1)*(bot-top);
+    lab(st,xa,10,0,[[d.from_label,'h2']],{anchor:'t'}); lab(st,xb,10,0,[[d.to_label,'h2']],{anchor:'t'});
+    add(st,'line',{x1:xa,y1:top-10,x2:xa,y2:bot+8}).setAttribute('class','gr'); add(st,'line',{x1:xb,y1:top-10,x2:xb,y2:bot+8}).setAttribute('class','gr');
+    const ya=spread(it.map(m=>sy(m.from)),34,top,bot), yb=spread(it.map(m=>sy(m.to)),34,top,bot);
+    it.map((m,i)=>i).sort((a,b)=>(it[a].highlight?1:0)-(it[b].highlight?1:0)).forEach(i=>{ const m=it[i], c=m.highlight?tc(m.tone||'main'):(m.tone?tc(m.tone,'line'):'var(--tone-mute-line)'), tcx=m.highlight?tc(m.tone||'main'):null;
+      add(st,'line',{x1:xa,y1:sy(m.from),x2:xb,y2:sy(m.to)},'stroke:'+c+';stroke-width:'+(m.highlight?6:3.5)+';stroke-linecap:round');
+      add(st,'circle',{cx:xa,cy:sy(m.from),r:m.highlight?10:7},'fill:'+c+';stroke:#fff;stroke-width:2.5'); add(st,'circle',{cx:xb,cy:sy(m.to),r:m.highlight?10:7},'fill:'+c+';stroke:#fff;stroke-width:2.5');
+      lab(st,xa-18,ya[i],0,[[m.label+'  '+fmt(m.from,dec),m.highlight?'bb':'b',tcx]],{anchor:'r'});
+      lab(st,xb+18,yb[i],0,[[fmt(m.to,dec)+'  '+m.label,m.highlight?'bb':'b',tcx]],{anchor:'l'}); });
+  }
+
+  // ───────── dumbbell 아령 · range-bar 범위 막대 ─────────
+  // dumbbell: a_label,b_label, rows[{label,a,b,highlight}]   range-bar: rows[{label,min,max,mid,highlight}], mid_label
+  function rangeLike(d,mode){
+    const rows=d.rows, n=rows.length, dec=d.decimals, A=mode==='dumbbell'?'a':'min', Bk=mode==='dumbbell'?'b':'max';
+    const all=[].concat(...rows.map(r=>[r[A],r[Bk]].concat(r.mid!=null?[r.mid]:[])));
+    if(mode==='dumbbell') legend([{label:d.a_label,color:tc(d.a_tone||'mute'),shape:'dot'},{label:d.b_label,color:tc(d.b_tone||'main'),shape:'dot'}].concat(d.unit?[{label:'(단위: '+d.unit+')',color:'transparent'}]:[]));
+    else if(d.mid_label||d.unit) legend([].concat(d.range_label?[{label:d.range_label,color:tc(d.tone||'sub','line')}]:[],d.mid_label?[{label:d.mid_label,color:tc(d.tone||'main'),shape:'dot'}]:[],d.unit?[{label:'(단위: '+d.unit+')',color:'transparent'}]:[]));
+    const tk=niceTicks(d.zero?Math.min(0,...all):Math.min(...all),Math.max(...all),6), td=tickDec(tk), lw=Math.min(420,Math.max(...rows.map(r=>measure(0,[[r.label,r.highlight?'bb':'b']]).w))+22);
+    const vw=Math.max(...all.map(v=>measure(0,[[fmt(v,dec),'vs']]).w))+16, rh=n<=6?64:n<=10?54:48, top=44, x0=lw+vw+8, x1=W-vw-12, st=stage(top+n*rh+12), sx=v=>x0+(v-tk[0])/(tk[tk.length-1]-tk[0])*(x1-x0);
+    tk.forEach(v=>{ add(st,'line',{x1:sx(v),y1:top-4,x2:sx(v),y2:top+n*rh+4}).setAttribute('class','grd'); lab(st,sx(v),top-10,0,[[fmt(v,td),'vs']],{anchor:'b'}); });
+    rows.forEach((r,i)=>{ const y=top+i*rh+rh/2, a=sx(r[A]), b=sx(r[Bk]), l=Math.min(a,b), rr=Math.max(a,b), hot=r.highlight;
+      if(hot) add(st,'rect',{x:0,y:y-rh/2+3,width:W,height:rh-6,rx:6},'fill:'+tc(mode==='dumbbell'?(d.b_tone||'main'):(d.tone||'main'),'tint'));
+      lab(st,lw,y,0,[[r.label,hot?'bb':'b']],{anchor:'r'});
+      if(mode==='dumbbell'){ const ca=tc(d.a_tone||'mute'), cb=tc(d.b_tone||'main');
+        add(st,'line',{x1:l,y1:y,x2:rr,y2:y},'stroke:'+tc(d.b_tone||'main','line')+';stroke-width:9;stroke-linecap:round');
+        add(st,'circle',{cx:a,cy:y,r:11},'fill:'+ca+';stroke:#fff;stroke-width:2.5'); add(st,'circle',{cx:b,cy:y,r:13},'fill:'+cb+';stroke:#fff;stroke-width:2.5');
+        if(GL>0) add(st,'circle',{cx:b,cy:y,r:13},'fill:'+grad(st,[[0,'#fff',GL*2],[0.8,'#fff',0]],{radial:1,attrs:{cx:0.35,cy:0.3,r:0.8}}));
+        lab(st,(a<=b?a:a)+(a<=b?-18:18),y,0,[[fmt(r.a,dec),'vs']],{anchor:a<=b?'r':'l'}); lab(st,b+(a<=b?20:-20),y,0,[[fmt(r.b,dec),'v',cb]],{anchor:a<=b?'l':'r'});
+      } else { const c=tc(d.tone||'sub','line'), cm=tc(d.tone||'main');
+        add(st,'rect',{x:l,y:y-11,width:Math.max(4,rr-l),height:22,rx:11},'fill:'+c);
+        if(GL>0) add(st,'rect',{x:l,y:y-11,width:Math.max(4,rr-l),height:22,rx:11},'fill:'+grad(st,[[0,'#fff',GL*1.6],[1,'#fff',0]]));
+        lab(st,l-12,y,0,[[fmt(r.min,dec),'vs']],{anchor:'r'}); lab(st,rr+12,y,0,[[fmt(r.max,dec),'vs']],{anchor:'l'});
+        if(r.mid!=null){ add(st,'circle',{cx:sx(r.mid),cy:y,r:11},'fill:'+cm+';stroke:#fff;stroke-width:3'); } }
+    });
+  }
+
+  // ───────── bubble-compare 비례 원 ─────────
+  // items[{label,value,note,highlight,tone}] 2~6, unit, decimals — 넓이가 값에 비례, 바닥 맞춤
+  function bubbleCompare(d){
+    const it=d.items, n=it.length, dec=d.decimals, mx=Math.max(...it.map(m=>m.value)), gap=d.gap||44;
+    let R=d.r_max||170; const rs=()=>it.map(m=>Math.max(6,R*Math.sqrt(m.value/mx)));
+    const minSlot=150; let r=rs(), tot=()=>r.reduce((a,v)=>a+Math.max(2*v,minSlot),0)+gap*(n-1);
+    while(tot()>W-20&&R>60){ R-=6; r=rs(); }
+    const noteH=Math.max(...it.map((m,i)=>measure(Math.max(2*r[i],minSlot)+gap-12,[[m.label,'h2'],[m.note,'s']]).h)), top=60, base=top+2*R, st=stage(base+18+noteH+10);
+    add(st,'line',{x1:0,y1:base,x2:W,y2:base}).setAttribute('class','gr');
+    let x=(W-tot())/2;
+    it.forEach((m,i)=>{ const slot=Math.max(2*r[i],minSlot), cx=x+slot/2, cy=base-r[i], hot=m.highlight, c=hot?tc(m.tone||'wait'):tc(m.tone||'go');
+      add(st,'circle',{cx,cy,r:r[i]},'fill:'+c+(hot?'':';fill-opacity:.5'));
+      if(GL>0) add(st,'circle',{cx,cy,r:r[i]},'fill:'+grad(st,[[0,'#fff',GL*1.6],[0.7,'#fff',0],[1,'#000',GL*0.6]],{radial:1,attrs:{cx:0.36,cy:0.3,r:0.85}}));
+      const txt=fmt(m.value,dec)+(d.unit_inline||''), inside=r[i]>=Math.max(58,measure(0,[[txt,'big']]).w*0.56);
+      if(inside) lab(st,cx,cy,0,[[txt,'big',hot?'#fff':tc('main')]]); else lab(st,cx,cy-r[i]-8,0,[[txt,'v',hot?c:null]],{anchor:'b'});
+      lab(st,cx,base+16,slot+gap-12,[[m.label,'h2',hot?c:null],[m.note,'s']],{anchor:'t'}); x+=slot+gap; });
+    if(d.unit){ const u=t('div','unit',/^\(/.test(d.unit)?d.unit:'(단위: '+d.unit+')'); root.insertBefore(u,st.el); }
+  }
+
+  // ───────── small-multiples 작은 그래프 묶음 ─────────
+  // x[], panels[{title,values[],highlight,tone,note}], kind:"line"|"bar", cols, unit, decimals, shared_y(기본 true)
+  function smallMultiples(d){
+    const X=d.x, n=X.length, P=d.panels, k=P.length, cols=d.cols||Math.min(k,k<=4?k:(k<=6?3:4)), rowsN=Math.ceil(k/cols), dec=d.decimals, gapX=40, gapY=34;
+    unitLine(d.unit);
+    const pw=(W-gapX*(cols-1))/cols, ph=d.panel_height||250, all=[].concat(...P.map(p=>p.values.filter(v=>v!=null))), bar=(d.kind==='bar');
+    const th=Math.max(...P.map(p=>measure(pw,[[p.title,'h2']],{align:'l'}).h)), cellH=th+10+ph+44, st=stage(rowsN*cellH+(rowsN-1)*gapY);
+    P.forEach((p,i)=>{ const cx0=(i%cols)*(pw+gapX), cy0=Math.floor(i/cols)*(cellH+gapY), hot=p.highlight, c=tc(p.tone||(hot?'wait':'sub'));
+      const vs=p.values.filter(v=>v!=null), lo=(d.shared_y===false)?Math.min(bar?0:Infinity,...vs):Math.min(bar||d.zero?0:Infinity,...all), hi=(d.shared_y===false)?Math.max(...vs):Math.max(...all);
+      const last=p.values[n-1], vw=measure(0,[[fmt(last,dec),'v']]).w+14, top=cy0+th+16, y0=top+ph, x0=cx0+4, x1=cx0+pw-(bar?4:vw+8), sy=v=>y0-(v-lo)/(hi-lo||1)*(ph-16), sx=j=>bar?x0+(x1-x0)*(j+0.5)/n:x0+(n===1?0.5:j/(n-1))*(x1-x0);
+      lab(st,cx0,cy0,pw,[[p.title,'h2',hot?c:null]],{anchor:'tl',align:'l'});
+      add(st,'line',{x1:cx0,y1:y0,x2:cx0+pw,y2:y0}).setAttribute('class','ax');
+      add(st,'line',{x1:cx0,y1:top+16,x2:cx0+pw,y2:top+16}).setAttribute('class','grd');
+      if(bar){ const bw=Math.min(46,(x1-x0)/n*0.66); p.values.forEach((v,j)=>{ if(v==null) return; add(st,'rect',{x:sx(j)-bw/2,y:sy(Math.max(v,0)),width:bw,height:Math.max(2,Math.abs(sy(v)-sy(0))),rx:SOLID?3:0},'fill:'+(j===n-1?c:tc(p.tone||(hot?'wait':'sub'),'line'))); });
+        lab(st,sx(n-1),sy(Math.max(last,0))-6,0,[[fmt(last,dec),'v',c]],{anchor:(sx(n-1)+vw/2>cx0+pw)?'br':'b'});
+      } else { const pts=p.values.map((v,j)=>v==null?null:[sx(j),sy(v)]).filter(Boolean);
+        add(st,'path',{d:'M'+pts[0][0]+' '+y0+' L'+pts.map(q=>q.join(' ')).join(' L')+' L'+pts[pts.length-1][0]+' '+y0+' Z'},'fill:'+c+';fill-opacity:.13');
+        add(st,'polyline',{points:pts.map(q=>q.join(',')).join(' ')},'fill:none;stroke:'+c+';stroke-width:'+(hot?5.5:4.5)+';stroke-linejoin:round;stroke-linecap:round');
+        const e=pts[pts.length-1]; add(st,'circle',{cx:e[0],cy:e[1],r:8},'fill:'+c+';stroke:#fff;stroke-width:2.5'); lab(st,e[0]+12,e[1],0,[[fmt(last,dec),'v',c]],{anchor:'l'}); }
+      lab(st,cx0,y0+8,0,[[X[0],'s']],{anchor:'tl'}); lab(st,bar?cx0+pw:x1,y0+8,0,[[X[n-1],'s']],{anchor:'tr'});
+      if(p.note) lab(st,cx0+pw/2,y0+8,pw*0.5,[[p.note,'s']],{anchor:'t'}); });
+  }
+
+  // ───────── stacked-share 구성비 누적 막대 ─────────
+  // series[{label,tone}], rows[{label,values[],highlight}], unit, decimals, normalize(기본 true) — 계열은 순서가 있는 한 색 계열로 칠한다
+  function stackedShare(d){
+    const S=d.series, rows=d.rows, n=rows.length, dec=d.decimals==null?0:d.decimals, norm=d.normalize!==false;
+    const ramp=[['sub',''],['sub','line'],['mute','line'],['mute','tint'],['main','tint'],['main','']], onDark=[1,0,0,0,0,1];   // 한 색의 농도 단계 — 진한 칠은 첫 계열 하나
+    const col=(j)=>S[j].tone?tc(S[j].tone):tc(ramp[j%6][0],ramp[j%6][1]), dark=j=>S[j].tone?true:!!onDark[j%6];
+    legend(S.map((s,j)=>({label:s.label,color:col(j)})).concat(d.unit?[{label:'(단위: '+d.unit+')',color:'transparent'}]:[]));
+    const lw=Math.min(400,Math.max(...rows.map(r=>measure(0,[[r.label,r.highlight?'bb':'b']]).w))+20), sums=rows.map(r=>r.values.reduce((a,v)=>a+(v||0),0)), mx=Math.max(...sums);
+    const tw=norm?0:Math.max(...sums.map(v=>measure(0,[[fmt(v,dec),'v']]).w))+14, rh=n<=5?70:n<=9?58:50, bh=Math.round(rh*0.64), x0=lw+10, x1=W-tw-4, st=stage(n*rh+8);
+    rows.forEach((r,i)=>{ const y=4+i*rh+(rh-bh)/2, full=norm?(x1-x0):(x1-x0)*sums[i]/mx; let x=x0;
+      lab(st,lw,y+bh/2,0,[[r.label,r.highlight?'bb':'b']],{anchor:'r'});
+      r.values.forEach((v,j)=>{ if(!v) return; const w=full*v/sums[i]; add(st,'rect',{x,y,width:Math.max(1,w-2),height:bh},'fill:'+col(j));
+        const txt=fmt(norm?v/sums[i]*100:v,dec); if(w>=measure(0,[[txt,'vs']]).w+14) lab(st,x+(w-2)/2,y+bh/2,0,[[txt,'vs',dark(j)?'#fff':'var(--ink)']]); x+=w; });
+      if(GL>0) add(st,'rect',{x:x0,y,width:full,height:bh},'fill:'+grad(st,[[0,'#fff',GL*1.2],[1,'#fff',0]]));
+      if(!norm) lab(st,x0+full+10,y+bh/2,0,[[fmt(sums[i],dec),'v']],{anchor:'l'});
+      if(r.highlight) add(st,'rect',{x:x0-3,y:y-3,width:full+4,height:bh+6},'fill:none;stroke:'+tc('wait')+';stroke-width:4'); });
+  }
+
+  // ═════════════════════════ 유량·연결 (v2.3) ═════════════════════════
+  // ───────── sankey 유량도 ─────────
+  // nodes[{id,label,col,tone,highlight}], links[{from,to,value,highlight}], col_titles[], unit, decimals
+  // 띠의 굵기가 값이다. 열 순서(col 0,1,2…)는 사양이 정하고, 열 안 순서는 nodes 에 적은 순서다
+  function sankey(d){
+    const N=d.nodes.map(n=>Object.assign({inL:[],outL:[]},n)), by={}, dec=d.decimals; N.forEach(n=>by[n.id]=n);
+    const L=d.links.map(l=>({s:by[l.from],t:by[l.to],v:+l.value,hot:!!l.highlight,raw:l}));
+    L.forEach(l=>{ if(!l.s||!l.t) throw new Error('links 의 from·to 가 nodes 의 id 에 없음: '+l.raw.from+' → '+l.raw.to); l.s.outL.push(l); l.t.inL.push(l); });
+    const nc=Math.max(...N.map(n=>n.col||0))+1, cols=[]; for(let c=0;c<nc;c++) cols.push(N.filter(n=>(n.col||0)===c));
+    N.forEach(n=>{ n.val=Math.max(n.inL.reduce((a,l)=>a+l.v,0),n.outL.reduce((a,l)=>a+l.v,0)); });
+    unitLine(d.unit);
+    const txt=n=>n.label+'  '+fmt(n.val,dec), gap=d.gap||18, bw=20, H0=d.height||520, top=d.col_titles?52:10;
+    const lw=Math.max(...cols[0].map(n=>measure(0,[[txt(n),'b']]).w))+18, rw=Math.max(...cols[nc-1].map(n=>measure(0,[[txt(n),'b']]).w))+18;
+    const k=Math.min(...cols.map(c=>(H0-gap*(c.length-1))/c.reduce((a,n)=>a+n.val,0))), st=stage(top+H0+12);
+    const x0=lw, x1=W-rw-bw, cx=c=>nc===1?x0:x0+(x1-x0)*c/(nc-1), anyHot=L.some(l=>l.hot)||N.some(n=>n.highlight);
+    cols.forEach((c,ci)=>{ const tot=c.reduce((a,n)=>a+n.val*k,0)+gap*(c.length-1); let y=top+(H0-tot)/2;
+      c.forEach(n=>{ n.x=cx(ci); n.y=y; n.h=Math.max(4,n.val*k); y+=n.h+gap; }); });
+    N.forEach(n=>{ n.outL.sort((a,b)=>a.t.y-b.t.y); n.inL.sort((a,b)=>a.s.y-b.s.y);
+      let y=n.y; n.outL.forEach(l=>{ l.y0=y; y+=l.v*k; }); y=n.y; n.inL.forEach(l=>{ l.y1=y; y+=l.v*k; }); });
+    const tone=n=>n.tone||(n.highlight?'wait':'sub');
+    L.slice().sort((a,b)=>(a.hot?1:0)-(b.hot?1:0)).forEach(l=>{ const t=Math.max(1.5,l.v*k), xa=l.s.x+bw, xb=l.t.x, mx=(xa+xb)/2;
+      const hot=l.hot||l.s.highlight||l.t.highlight, col=anyHot?(hot?tc(l.raw.tone||(l.s.highlight?tone(l.s):(l.t.highlight?tone(l.t):'wait'))):'var(--tone-mute-line)'):tc(tone(l.s));
+      add(st,'path',{d:`M${xa} ${l.y0} C ${mx} ${l.y0}, ${mx} ${l.y1}, ${xb} ${l.y1} L ${xb} ${l.y1+t} C ${mx} ${l.y1+t}, ${mx} ${l.y0+t}, ${xa} ${l.y0+t} Z`},'fill:'+col+';fill-opacity:'+(anyHot?(hot?0.62:0.38):0.34)); });
+    N.forEach(n=>{ add(st,'rect',{x:n.x,y:n.y,width:bw,height:n.h,rx:SOLID?3:0},'fill:'+tc(tone(n)));
+      if(GL>0) add(st,'rect',{x:n.x,y:n.y,width:bw,height:n.h,rx:3},'fill:'+grad(st,[[0,'#fff',GL*1.4],[1,'#fff',0]],{attrs:{x1:0,y1:0,x2:1,y2:0}})); });
+    cols.forEach((c,ci)=>{ const first=ci===0, ys=spread(c.map(n=>n.y+n.h/2),34,top+14,top+H0-4);
+      c.forEach((n,i)=>{ const hot=n.highlight, mid=(ci>0&&ci<nc-1); lab(st,first?n.x-12:n.x+bw+12,ys[i],0,[[n.label,hot?'bb':'b',(hot&&!mid)?tc(tone(n)):null]],{anchor:first?'r':'l',cls:(ci>0&&ci<nc-1)?'halo':''}).firstChild.append(Object.assign(document.createElement('span'),{textContent:'  '+fmt(n.val,dec),className:'vs'})); });
+      if(d.col_titles&&d.col_titles[ci]) lab(st,first?c[0].x+bw:(ci===nc-1?c[0].x:c[0].x+bw/2),8,0,[[d.col_titles[ci],'sb']],{anchor:first?'tr':(ci===nc-1?'tl':'t')}); });
+  }
+
+  // ───────── link-map 연결도 (열 사이 연결) ─────────
+  // columns[{title,tone,items[{id,label,tone,highlight}]}] 2~3열, links[{from,to,highlight}]
+  // 선 굵기는 모두 같다 — 무엇이 무엇에 닿는지만 말한다(양은 말하지 않는다)
+  function linkMap(d){
+    const C=d.columns, nc=C.length, by={}, gapY=12, top=C.some(c=>c.title)?54:8;
+    const few=c=>c.items.length<=5, cw=C.map(c=>c.width||(few(c)?250:Math.min(420,(W-2*250-2*150)))), free=W-cw.reduce((a,b)=>a+b,0), gx=nc>1?free/(nc-1):0;
+    let x=0; C.forEach((c,ci)=>{ c._x=x; c._w=cw[ci]; x+=cw[ci]+gx; });
+    C.forEach(c=>c.items.forEach(m=>{ m._h=Math.max(few(c)?86:50,measure(c._w-28,[[m.label,few(c)?'h2':'bb']]).h+(few(c)?30:18)); }));
+    const colH=c=>c.items.reduce((a,m)=>a+m._h,0)+gapY*(c.items.length-1), H0=Math.max(...C.map(colH));
+    C.forEach(c=>{ if(few(c)&&colH(c)<H0){ const extra=(H0-colH(c))/c.items.length, grow=Math.min(extra,70); c.items.forEach(m=>m._h+=grow); c._gap=(H0-c.items.reduce((a,m)=>a+m._h,0))/Math.max(1,c.items.length-1); } else c._gap=gapY; });
+    const st=stage(top+H0+10);
+    C.forEach((c,ci)=>{ const tot=c.items.reduce((a,m)=>a+m._h,0)+c._gap*(c.items.length-1); let y=top+(H0-tot)/2;
+      if(c.title) lab(st,c._x+c._w/2,8,c._w,[[c.title,'sb']],{anchor:'t'});
+      c.items.forEach((m,i)=>{ m._c=c; m._ci=ci; m._y=y; m._tone=m.tone||c.tone||(few(c)?['go','main','wait','sub','mute'][i%5]:'sub'); m._big=few(c); m._solid=few(c)&&(c.fill?c.fill==='solid':ci===0); by[m.id]=m; y+=m._h+c._gap; }); });
+    const anyHot=d.links.some(l=>l.highlight)||C.some(c=>c.items.some(m=>m.highlight));
+    const LK=d.links.map(l=>{ const a=by[l.from], b=by[l.to]; if(!a||!b) throw new Error('links 의 from·to 가 items 의 id 에 없음: '+l.from+' → '+l.to); return {a,b,hot:!!(l.highlight||a.highlight||b.highlight),raw:l}; });
+    const outN={}, inN={}, outI={}, inI={}; LK.forEach(l=>{ outN[l.a.id]=(outN[l.a.id]||0)+1; inN[l.b.id]=(inN[l.b.id]||0)+1; });
+    LK.slice().sort((p,q)=>(p.a._y-q.a._y)||(p.b._y-q.b._y)).forEach(l=>{ l.oi=outI[l.a.id]=(outI[l.a.id]||0)+1; });
+    LK.slice().sort((p,q)=>(p.b._y-q.b._y)||(p.a._y-q.a._y)).forEach(l=>{ l.ii=inI[l.b.id]=(inI[l.b.id]||0)+1; });
+    LK.slice().sort((p,q)=>(p.hot?1:0)-(q.hot?1:0)).forEach(l=>{ const a=l.a, b=l.b, xa=a._c._x+a._c._w, xb=b._c._x-13;
+      const ya=a._y+a._h*(l.oi/(outN[a.id]+1)), yb=b._y+b._h*(l.ii/(inN[b.id]+1)), mx=(xa+xb)/2;
+      const col=(anyHot&&!l.hot)?'var(--tone-mute-line)':tc(l.raw.tone||(a._big?a._tone:b._tone));
+      add(st,'path',{d:`M${xa} ${ya} C ${mx} ${ya}, ${mx} ${yb}, ${xb} ${yb}`},'fill:none;stroke:'+col+';stroke-width:'+(l.hot?5:4)+';stroke-linecap:round;opacity:'+((anyHot&&!l.hot)?0.7:0.9));
+      add(st,'polygon',{points:`${xb-2},${yb-8} ${xb+13},${yb} ${xb-2},${yb+8}`},'fill:'+col); });
+    C.forEach(c=>c.items.forEach(m=>{ const hot=m.highlight;
+      if(m._solid){ add(st,'rect',{x:c._x,y:m._y,width:c._w,height:m._h,rx:SOLID?8:0},'fill:'+tc(m._tone));
+        if(GL>0) add(st,'rect',{x:c._x,y:m._y,width:c._w,height:m._h,rx:8},'fill:'+grad(st,[[0,'#fff',GL*1.3],[1,'#000',GL*0.5]]));
+        lab(st,c._x+c._w/2,m._y+m._h/2,c._w-28,[[m.label,'h2']],{cls:'on',fit:[c._w-8,m._h-4]});
+      } else { add(st,'rect',{x:c._x,y:m._y,width:c._w,height:m._h,rx:SOLID?6:0},'fill:'+tc(m._tone,'tint')+';stroke:'+tc(m._tone,(hot||m._big)?'':'line')+';stroke-width:'+(hot?3:(m._big?2.5:1.5)));
+        lab(st,c._x+c._w/2,m._y+m._h/2,c._w-28,[[m.label,m._big?'h2':'bb',m._big?tc(m._tone):null]],{fit:[c._w-8,m._h-2]}); } }));
+  }
+
+  // ───────── network 연결망 ─────────
+  // nodes[{id,label,value,group,tone,highlight}] 5~16, links[{from,to,weight}], groups[{key,label,tone}], center:"id"
+  // 마디를 타원 위에 두고(가운데 하나를 둘 수 있다) 연결을 안쪽 곡선으로 잇는다. 원 크기=value, 선 굵기=weight
+  function network(d){
+    const N=d.nodes.map(n=>Object.assign({},n)), by={}; N.forEach(n=>by[n.id]=n);
+    const G={}; (d.groups||[]).forEach(g=>G[g.key||g.label]=g);
+    if(d.groups) legend(d.groups.map(g=>({label:g.label,color:tc(g.tone||'sub'),shape:'dot'})));
+    const ctr=d.center?by[d.center]:null, ring=N.filter(n=>n!==ctr), n=ring.length, vmax=Math.max(...N.map(m=>m.value||1)), wmax=Math.max(...d.links.map(l=>l.weight||1));
+    const rOf=m=>(d.r_min||14)+((d.r_max||40)-(d.r_min||14))*Math.sqrt((m.value||1)/vmax), tone=m=>m.tone||(G[m.group]&&G[m.group].tone)||(m.highlight?'wait':'sub');
+    const lblW=Math.min(330,Math.max(...ring.map(m=>measure(0,[[m.label,'b']]).w))+8), rx=d.rx||Math.min(470,W/2-lblW-52), ry=d.ry||260, padY=Math.max(76,Math.max(...ring.map(rOf))+58), cx=W/2, cy=padY+ry, st=stage(2*ry+2*padY);
+    ring.forEach((m,i)=>{ const a=rad(-90+360*i/n+(d.rotate||0)); m.a=a; m.x=cx+rx*Math.cos(a); m.y=cy+ry*Math.sin(a); m.r=rOf(m); });
+    if(ctr){ ctr.x=cx; ctr.y=cy; ctr.r=Math.max(rOf(ctr),d.center_r||46); }
+    const hotIds=new Set(N.filter(m=>m.highlight).map(m=>m.id)), anyHot=hotIds.size>0||d.links.some(l=>l.highlight);
+    const LK=d.links.map(l=>{ const a=by[l.from], b=by[l.to]; if(!a||!b) throw new Error('links 의 from·to 가 nodes 의 id 에 없음: '+l.from+' → '+l.to);
+      return {a,b,w:(l.weight||1)/wmax,hot:!!(l.highlight||hotIds.has(a.id)||hotIds.has(b.id)),raw:l}; });
+    LK.sort((p,q)=>(p.hot?1:0)-(q.hot?1:0)||p.w-q.w).forEach(l=>{ const a=l.a, b=l.b, mxp=(a.x+b.x)/2, myp=(a.y+b.y)/2, pull=(a===ctr||b===ctr)?0:0.5;
+      const qx=mxp+(cx-mxp)*pull, qy=myp+(cy-myp)*pull, hn=hotIds.has(a.id)?a:(hotIds.has(b.id)?b:null);
+      const col=l.hot?tc(l.raw.tone||(hn?tone(hn):'wait')):'var(--tone-mute-line)';
+      add(st,'path',{d:`M${a.x} ${a.y} Q ${qx} ${qy} ${b.x} ${b.y}`},'fill:none;stroke:'+col+';stroke-linecap:round;stroke-width:'+(1.5+6.5*l.w).toFixed(1)+';opacity:'+(l.hot?0.88:(anyHot?0.72:0.5+0.4*l.w)).toFixed(2)); });
+    N.forEach(m=>{ add(st,'circle',{cx:m.x,cy:m.y,r:m.r+3},'fill:#fff'); add(st,'circle',{cx:m.x,cy:m.y,r:m.r},'fill:'+tc(tone(m)));
+      if(GL>0) add(st,'circle',{cx:m.x,cy:m.y,r:m.r},'fill:'+grad(st,[[0,'#fff',GL*1.8],[0.75,'#fff',0]],{radial:1,attrs:{cx:0.35,cy:0.3,r:0.8}})); });
+    ring.forEach(m=>{ const c=Math.cos(m.a), s=Math.sin(m.a), o=m.r+12, hot=m.highlight;
+      const an=Math.abs(c)<0.2?(s<0?'b':'t'):(c>0?'l':'r');
+      lab(st,m.x+c*o,m.y+s*o,0,[[m.label,hot?'bb':'b',hot?tc(tone(m)):null]],{anchor:an,align:an==='l'?'l':(an==='r'?'r':null)}); });
+    if(ctr){ const w=measure(0,[[ctr.label,'h2']]).w; if(w<=ctr.r*1.7) lab(st,cx,cy,ctr.r*1.8,[[ctr.label,'h2']],{cls:'on',fit:[ctr.r*2,ctr.r*2]});
+      else lab(st,cx,cy+ctr.r+10,0,[[ctr.label,'h2',tc(tone(ctr))]],{anchor:'t',cls:'halo'}); }
+  }
+
+  // ═════════════════════════ 기존 도식 형태의 새 디자인 (v2.3) ═════════════════════════
+  // forms.html 과 같은 사양(data 키)을 그대로 받아 새 디자인으로 그린다 — 구조는 그대로, 생김새만 바꾼다.
+  // ───────── pyramid 위계 ─────────  levels[{title,desc,tone,highlight}] 위→아래
+  function pyramidX(d){
+    const lv=d.levels, m=lv.length, gap=7, T=8, BW=d.base_width||640, TW=Math.max(170,BW*0.24), cx=BW/2+34, descX=cx+BW/2+70, descW=W-descX-8;
+    const ramp=[['main',''],['sub',''],['go',''],['go','line'],['mute','line']], pick=i=>ramp[Math.min(ramp.length-1,Math.round(i*(Math.min(m,5)-1)/Math.max(1,m-1)))];
+    const hs=lv.map(v=>Math.max(m<=4?104:88,measure(descW,[[v.desc,'b']],{align:'l'}).h+30)), H=T+hs.reduce((a,b)=>a+b,0)+gap*(m-1)+10, st=stage(H);
+    const tot=H-T-10, wAt=y=>TW+(BW-TW)*((y-T)/tot); let y=T;
+    lv.forEach((v,i)=>{ const y0=y, y1=y+hs[i], a=wAt(y0)/2, b=wAt(y1)/2, p=v.highlight?['wait','']:(v.tone?[v.tone,'']:pick(i)), col=tc(p[0],p[1]), dark=p[1]!=='line';
+      add(st,'rect',{x:cx-BW/2-34,y:y0,width:W-(cx-BW/2-34),height:hs[i],rx:SOLID?8:0},'fill:'+tc(p[0],'tint')+';fill-opacity:'+(i%2?0.55:1));
+      const pts=`${cx-a},${y0} ${cx+a},${y0} ${cx+b},${y1} ${cx-b},${y1}`;
+      add(st,'polygon',{points:pts},'fill:'+col);
+      if(GL>0) add(st,'polygon',{points:pts},'fill:'+grad(st,[[0,'#000',GL*0.5],[0.35,'#fff',GL*1.1],[0.7,'#fff',0],[1,'#000',GL*0.9]],{attrs:{x1:0,y1:0,x2:1,y2:0}}));
+      lab(st,cx,(y0+y1)/2,2*a-28,[[v.title,'h2',dark?null:tc('main')]],{cls:dark?'on':'',fit:[a+b-8,hs[i]-4]});
+      if(v.desc){ add(st,'path',{d:`M${cx+(a+b)/2+14} ${(y0+y1)/2} L${descX-16} ${(y0+y1)/2}`},'stroke:'+tc(p[0],'line')+';stroke-width:2.5;stroke-dasharray:2 7;stroke-linecap:round;fill:none');
+        lab(st,descX,(y0+y1)/2,descW,[[v.desc,'b']],{anchor:'l',align:'l'}); }
+      y=y1+gap; });
+  }
+
+  // ───────── venn 교집합 ─────────  sets[{title,desc,tone}] 2~3, overlaps{"12","13","23","123"}
+  function vennX(d){
+    const s=d.sets, n=s.length, o=d.overlaps||{}, tn=i=>s[i].tone||['main','go','wait'][i], H=n===2?560:690, st=stage(H);
+    const ring=(x,y,r,i)=>{ add(st,'circle',{cx:x,cy:y,r},'fill:'+tc(tn(i))+';fill-opacity:.2;stroke:'+tc(tn(i))+';stroke-width:4');
+      if(GL>0) add(st,'circle',{cx:x,cy:y,r:r-2},'fill:'+grad(st,[[0,'#fff',GL*2.2],[0.7,'#fff',0]],{radial:1,attrs:{cx:0.36,cy:0.28,r:0.85}})); };
+    const chip=(x,y,txt,strong)=>{ const mz=measure(strong?170:190,[[txt,strong?'h2':'bb']]), w=mz.w+30, h=mz.h+16;
+      add(st,'rect',{x:x-w/2,y:y-h/2,width:w,height:h,rx:Math.min(h/2,22)},strong?('fill:'+tc('main')):'fill:#fff;fill-opacity:.92;stroke:var(--neutral-line);stroke-width:1.5');
+      lab(st,x,y,strong?170:190,[[txt,strong?'h2':'bb']],{cls:strong?'on':''}); };
+    if(n===2){ const r=228, c=[[W/2-150,280],[W/2+150,280]]; c.forEach((p,i)=>ring(p[0],p[1],r,i));
+      [[c[0][0]-r*0.42,0],[c[1][0]+r*0.42,1]].forEach(([x,i])=>lab(st,x,280,230,[[s[i].title,'h1',tc(tn(i))],[s[i].desc,'b']]));
+      if(o['12']) chip(W/2,280,o['12'],true);
+    } else { const r=214, dd=136, C=[W/2,372], dir=[-90,150,30].map(a=>[Math.cos(rad(a)),Math.sin(rad(a))]), c=dir.map(v=>[C[0]+v[0]*dd,C[1]+v[1]*dd]);
+      c.forEach((p,i)=>ring(p[0],p[1],r,i));
+      dir.forEach((v,i)=>lab(st,C[0]+v[0]*(dd+r*0.5),C[1]+v[1]*(dd+r*0.5),220,[[s[i].title,'h1',tc(tn(i))],[s[i].desc,'b']]));
+      [['12',0,1],['13',0,2],['23',1,2]].forEach(([k,a,b])=>{ if(!o[k]) return; const vx=dir[a][0]+dir[b][0], vy=dir[a][1]+dir[b][1], L=Math.hypot(vx,vy); chip(C[0]+vx/L*dd*1.1,C[1]+vy/L*dd*1.1,o[k],false); });
+      if(o['123']) chip(C[0],C[1],o['123'],true); }
+  }
+
+  // ───────── cycle 순환 ─────────  items[{title,desc,highlight,tone}] 3~8, center{title,desc}, numbered
+  function cycleX(d){
+    const it=d.items, n=it.length, R=d.r||178, rw=54, Ro=R+rw/2, Ri=R-rw/2, lw=d.label_w||330, padY=96, cx=W/2, cy=padY+Ro, st=stage(2*Ro+2*padY);
+    const seq=['go','sub','main'], step=360/n, gapA=3.2, tip=Math.min(11,step*0.2), P=(a,r)=>[cx+r*Math.cos(rad(a)),cy+r*Math.sin(rad(a))];
+    it.forEach((m,i)=>{ const a0=-90+step*i+gapA/2-step/2-tip/2, a1=a0+step-gapA, tn=m.highlight?'wait':(m.tone||seq[i%3]), big=(a1-a0)>180?1:0;
+      const o0=P(a0,Ro), o1=P(a1,Ro), t1=P(a1+tip,R), i1=P(a1,Ri), i0=P(a0,Ri), n0=P(a0+tip,R);
+      const p=`M${o0[0]} ${o0[1]} A ${Ro} ${Ro} 0 ${big} 1 ${o1[0]} ${o1[1]} L ${t1[0]} ${t1[1]} L ${i1[0]} ${i1[1]} A ${Ri} ${Ri} 0 ${big} 0 ${i0[0]} ${i0[1]} L ${n0[0]} ${n0[1]} Z`;
+      add(st,'path',{d:p},'fill:'+tc(tn));
+      if(GL>0) add(st,'path',{d:p},'fill:'+grad(st,[[0,'#fff',GL*1.3],[1,'#000',GL*0.5]]));
+      const am=-90+step*i, c=Math.cos(rad(am)), s=Math.sin(rad(am));
+      if(d.numbered){ const q=P(am,R); add(st,'circle',{cx:q[0],cy:q[1],r:19},'fill:#fff'); lab(st,q[0],q[1],0,[[String(i+1),'h2',tc(tn)]]); }
+      const an=Math.abs(c)<0.25?(s<0?'b':'t'):((s>0.3?'t':(s<-0.3?'b':''))+(c>0?'l':'r')), q=P(am,Ro+(Math.abs(c)<0.25?20:10));
+      lab(st,q[0],q[1],an==='b'||an==='t'?lw+60:lw,[[m.title,'h2',tc(tn)],[m.desc,'b']],{anchor:an,align:/l$/.test(an)?'l':(/r$/.test(an)?'r':null)}); });
+    if(d.center){ add(st,'circle',{cx,cy,r:Ri-16},'fill:var(--fill-faint);stroke:var(--line-soft);stroke-width:2');
+      lab(st,cx,cy,2*(Ri-16)-30,[[d.center.title,'h1'],[d.center.desc,'b']],{fit:[2*(Ri-16)-8,2*(Ri-16)-30]}); }
+  }
+
+  // ── 공용: 둥근 카드·머리띠·점선 지시선·광택 ──
+  function gloss(st,tag,a,k){ if(GL>0) add(st,tag,a,'fill:'+grad(st,[[0,'#fff',GL*(k||1.3)],[1,'#000',GL*0.45]])); }
+  function card(st,x,y,w,h,tn,o){ o=o||{}; const r=SOLID?(o.r==null?10:o.r):0;
+    add(st,'rect',{x,y,width:w,height:h,rx:r},o.solid?('fill:'+tc(tn)):('fill:'+(o.white?'var(--card-fill)':tc(tn,'tint'))+';stroke:'+tc(tn,o.strong?'':'line')+';stroke-width:'+(o.strong?3:2)));
+    if(o.solid) gloss(st,'rect',{x,y,width:w,height:h,rx:r}); }
+  function dots(st,x1,y1,x2,y2,tn){ add(st,'path',{d:`M${x1} ${y1} L${x2} ${y2}`},'stroke:'+tc(tn||'mute','line')+';stroke-width:2.5;stroke-dasharray:2 7;stroke-linecap:round;fill:none'); }
+  function bulletParts(items,cls){ return [].concat(items||[]).map(x=>[x,(cls||'b')+' bul']); }
+
+  // ───────── funnel 깔때기 ─────────  stages[{label,value,note,drop,tone}]
+  function funnelX(d){
+    const s=d.stages, m=s.length, hh=92, gap=16, top=8, cx=400, W0=700, W1=250, noteX=cx+W0/2+84, noteW=W-noteX-6, st=stage(top+m*(hh+gap)-gap+10);
+    const wAt=k=>W0-(W0-W1)*(k/m), def=i=>i===m-1?'wait':(i===0?'go':(i>=m-2?'main':'sub'));
+    s.forEach((g,i)=>{ const y0=top+i*(hh+gap), y1=y0+hh, a=wAt(i)/2, b=wAt(i+1)/2, tn=g.tone||def(i), pts=`${cx-a},${y0} ${cx+a},${y0} ${cx+b},${y1} ${cx-b},${y1}`;
+      add(st,'rect',{x:0,y:y0,width:W,height:hh,rx:SOLID?8:0},'fill:'+tc(tn,'tint'));
+      add(st,'polygon',{points:pts},'fill:'+tc(tn)); if(GL>0) add(st,'polygon',{points:pts},'fill:'+grad(st,[[0,'#000',GL*0.5],[0.35,'#fff',GL*1.1],[0.7,'#fff',0],[1,'#000',GL*0.9]],{attrs:{x1:0,y1:0,x2:1,y2:0}}));
+      const L=lab(st,cx,(y0+y1)/2,2*b-24,[],{cls:'on',fit:[2*b,hh]}), row=div(); row.style.cssText='display:flex;gap:14px;align-items:baseline;justify-content:center;flex-wrap:wrap';
+      row.append(t('div','h2',g.label)); if(g.value!=null) row.append(t('div','v',String(g.value))); L.append(row);
+      if(g.note){ dots(st,cx+(a+b)/2+12,(y0+y1)/2,noteX-14,(y0+y1)/2,tn); lab(st,noteX,(y0+y1)/2,noteW,[[g.note,'b']],{anchor:'l',align:'l'}); }
+      if(g.drop){ const yy=y0-gap/2, e=lab(st,noteX,yy+(g.note?0:hh/2+gap/2),noteW,[[g.drop,'s',tc('stop')]],{anchor:'l',align:'l'}); void e;
+        add(st,'path',{d:`M${cx+wAt(i)/2+6} ${g.note?yy:(y0+y1)/2} L${noteX-22} ${g.note?yy:(y0+y1)/2}`},'stroke:'+tc('stop')+';stroke-width:2.5;fill:none;stroke-dasharray:6 5');
+        const ax=noteX-22, ay=g.note?yy:(y0+y1)/2; add(st,'polygon',{points:`${ax},${ay-7} ${ax+12},${ay} ${ax},${ay+7}`},'fill:'+tc('stop')); } });
+  }
+
+  // ───────── quadrant 2×2 ─────────  x{label,low,high}, y{…}, quadrants[4](TL,TR,BL,BR), items[{label,_x,_y,highlight}], _focus, takeaway
+  function quadrantX(d){
+    const pw=860, ph=560, side=d.takeaway?330:0, L=d.takeaway?150:(W-pw)/2+40, T=16, st=stage(ph+T+84), pos=['TL','TR','BL','BR'];
+    pos.forEach((p,i)=>{ const R=p[1]==='R', B=p[0]==='B', x=L+(R?pw/2+5:0), y=T+(B?ph/2+5:0), f=d._focus===p, q=(d.quadrants||[])[i];
+      add(st,'rect',{x,y,width:pw/2-5,height:ph/2-5,rx:SOLID?12:0},'fill:'+(f?tc('go','tint'):'var(--fill-faint)')+';stroke:'+(f?tc('go'):'var(--line-soft)')+';stroke-width:'+(f?3:1.5));
+      if(q) lab(st,x+(R?pw/2-26:20),y+(B?ph/2-24:18),0,[[q.title,'h2',f?tc('go'):null],[q.desc,'s']],{anchor:(B?'b':'t')+(R?'r':'l'),align:R?'r':'l'}); });
+    const ar=(x1,y1,x2,y2)=>{ add(st,'path',{d:`M${x1} ${y1} L${x2} ${y2}`},'stroke:'+tc('mute')+';stroke-width:3;fill:none;stroke-linecap:round'); const h=x2>x1; add(st,'polygon',{points:h?`${x2},${y2-8} ${x2+15},${y2} ${x2},${y2+8}`:`${x2-8},${y2} ${x2},${y2-15} ${x2+8},${y2}`},'fill:'+tc('mute')); };
+    ar(L,T+ph+16,L+pw+4,T+ph+16); ar(L-16,T+ph,L-16,T-2);
+    lab(st,L+pw/2,T+ph+30,0,[[d.x.label,'bb']],{anchor:'t'});
+    if(d.x.low) lab(st,L,T+ph+30,0,[[d.x.low,'s']],{anchor:'tl'}); if(d.x.high) lab(st,L+pw,T+ph+30,0,[[d.x.high,'s']],{anchor:'tr'});
+    lab(st,L-32,T+ph/2,110,[[d.y.label,'bb']],{anchor:'r',align:'r'});
+    if(d.y.high) lab(st,L-32,T+10,110,[[d.y.high,'s']],{anchor:'tr',align:'r'}); if(d.y.low) lab(st,L-32,T+ph-10,110,[[d.y.low,'s']],{anchor:'br',align:'r'});
+    (d.items||[]).forEach(m=>{ const x=L+m._x*pw, y=T+(1-m._y)*ph, hot=m.highlight, r=hot?15:11, c=tc(hot?'wait':'main');
+      add(st,'circle',{cx:x,cy:y,r:r+3},'fill:#fff'); add(st,'circle',{cx:x,cy:y,r},'fill:'+c);
+      if(GL>0) add(st,'circle',{cx:x,cy:y,r},'fill:'+grad(st,[[0,'#fff',GL*2],[0.8,'#fff',0]],{radial:1,attrs:{cx:0.35,cy:0.3,r:0.8}}));
+      const right=m._x<0.5; lab(st,x+(right?r+10:-r-10),y,0,[[m.label,hot?'bb':'b',hot?c:null]],{anchor:right?'l':'r',cls:'halo'}); });
+    if(d.takeaway){ const tx=L+pw+44, tw=W-tx-4, h=measure(tw-36,[[d.takeaway,'bb']],{align:'l'}).h+40; card(st,tx,T+ph/2-h/2,tw,h,'wait',{strong:1});
+      lab(st,tx+18,T+ph/2,tw-36,[[d.takeaway,'bb']],{anchor:'l',align:'l'}); }
+  }
+
+  // ───────── concentric 동심원 ─────────  rings[{title,desc}] 안→밖
+  function concentricX(d){
+    const rg=d.rings, n=rg.length, R=292, cx=R+20, cy=R+14, st=stage(2*R+30), lx=cx+R+110, lw=W-lx-8, rowH=(2*R-20)/n;
+    const ramp=[['main',''],['sub',''],['go',''],['go','line'],['go','tint'],['mute','tint']], pick=i=>ramp[Math.min(ramp.length-1,Math.round(i*(Math.min(n,5)-1)/Math.max(1,n-1)))], band=R/n;
+    for(let i=n-1;i>=0;i--){ const r=band*(i+1), p=pick(i); add(st,'circle',{cx,cy,r:r+2},'fill:#fff'); add(st,'circle',{cx,cy,r},'fill:'+tc(p[0],p[1]));
+      if(GL>0) add(st,'circle',{cx,cy,r},'fill:'+grad(st,[[0,'#fff',GL*1.4],[0.75,'#fff',0],[1,'#000',GL*0.35]],{radial:1,attrs:{cx:0.38,cy:0.3,r:0.85}})); }
+    rg.forEach((g,i)=>{ const p=pick(i), dark=(p[1]===''), ty=i===0?cy:cy-band*(i+0.5);
+      lab(st,cx,ty,i===0?band*1.7:band*2.2,[[g.title,'h2',dark?null:tc('main')]],{cls:dark?'on':'',fit:[band*2.6,band-2]});
+      const ry=14+rowH*(i+0.5)+ (2*R+30-28-rowH*n)/2, ex=cx+Math.sqrt(Math.max(0,Math.pow(band*(i+0.55),2)-Math.pow(Math.min(band*(i+0.5),Math.abs(ry-cy)),2)));
+      dots(st,ex,ry,lx-46,ry,p[0]); add(st,'circle',{cx:lx-26,cy:ry,r:11},'fill:'+tc(p[0],p[1])+';stroke:'+tc(p[0])+';stroke-width:2');
+      lab(st,lx,ry,lw,[[g.title,'h2',tc(p[0])],[g.desc,'b']],{anchor:'l',align:'l'}); });
+  }
+
+  // ───────── hub 허브 ─────────  center{title,desc}, nodes[{title,desc,tone}] 3~8
+  function hubX(d){
+    const nd=d.nodes, n=nd.length, cw=270, H=660, cx=W/2, cy=H/2, rx=W/2-cw/2-6, ry=H/2-64, cr=118, st=stage(H);
+    const P=nd.map((m,i)=>{ const a=rad(-90+360*i/n+(n%2?0:180/n)); return [cx+rx*Math.cos(a),cy+ry*Math.sin(a)]; });
+    nd.forEach((m,i)=>{ const tn=m.tone||(i%2?'sub':'go'); add(st,'path',{d:`M${cx} ${cy} L${P[i][0]} ${P[i][1]}`},'stroke:'+tc(tn,'line')+';stroke-width:6;stroke-linecap:round;fill:none'); });
+    add(st,'circle',{cx,cy,r:cr+10},'fill:#fff'); add(st,'circle',{cx,cy,r:cr},'fill:'+tc('main'));
+    if(GL>0) add(st,'circle',{cx,cy,r:cr},'fill:'+grad(st,[[0,'#fff',GL*1.6],[0.75,'#fff',0],[1,'#000',GL*0.5]],{radial:1,attrs:{cx:0.36,cy:0.3,r:0.85}}));
+    lab(st,cx,cy,cr*1.7,[[d.center.title,'h1'],[d.center.desc,'b']],{cls:'on',fit:[cr*1.9,cr*1.8]});
+    nd.forEach((m,i)=>{ const tn=m.tone||(i%2?'sub':'go'), h=Math.max(92,measure(cw-32,[[m.title,'h2'],[m.desc,'b']]).h+28), x=P[i][0]-cw/2, y=P[i][1]-h/2;
+      card(st,x,y,cw,h,tn,{}); add(st,'rect',{x,y:y+10,width:7,height:h-20,rx:3},'fill:'+tc(tn));
+      lab(st,P[i][0]+3,P[i][1],cw-32,[[m.title,'h2',tc(tn)],[m.desc,'b']],{fit:[cw-10,h-6]}); });
+  }
+
+  // ───────── fishbone 원인 ─────────  effect{title,desc}, categories[{title,causes[]}] 4~6
+  function fishboneX(d){
+    const C=d.categories, n=C.length, up=Math.ceil(n/2), ew=280, sx0=20, sx1=W-ew-36, rib=150, lineH=38;
+    const maxC=Math.max(...C.map(c=>c.causes.length)), half=74+maxC*lineH+26, H=2*half+40, sy=H/2, st=stage(H);
+    add(st,'path',{d:`M${sx0} ${sy} L${sx1} ${sy}`},'stroke:'+tc('main')+';stroke-width:12;stroke-linecap:round;fill:none');
+    add(st,'polygon',{points:`${sx1-4},${sy-22} ${sx1+30},${sy} ${sx1-4},${sy+22}`},'fill:'+tc('main'));
+    const eh=Math.max(150,measure(ew-36,[[d.effect.title,'h1'],[d.effect.desc,'b']]).h+40); card(st,W-ew,sy-eh/2,ew,eh,'wait',{solid:1,r:14});
+    lab(st,W-ew/2,sy,ew-36,[[d.effect.title,'h1'],[d.effect.desc,'b']],{cls:'on',fit:[ew-8,eh-6]});
+    C.forEach((c,i)=>{ const top=i<up, k=top?i:i-up, cnt=top?up:n-up, span=(sx1-sx0-rib-40)/cnt, ax=sx0+rib+50+span*(k+0.62), tn=top?'go':'sub', dir=top?-1:1;
+      const hy=sy+dir*(half-22), hx=ax-rib; add(st,'path',{d:`M${ax} ${sy} L${hx} ${hy}`},'stroke:'+tc(tn)+';stroke-width:5;stroke-linecap:round;fill:none');
+      const pw=measure(0,[[c.title,'h2']]).w+44; add(st,'rect',{x:hx-pw/2,y:hy-24,width:pw,height:48,rx:SOLID?24:0},'fill:'+tc(tn)); gloss(st,'rect',{x:hx-pw/2,y:hy-24,width:pw,height:48,rx:24});
+      lab(st,hx,hy,0,[[c.title,'h2']],{cls:'on'});
+      c.causes.forEach((z,j)=>{ const yy=top?hy+44+j*lineH:hy-44-(c.causes.length-1-j)*lineH, fr=(yy-hy)/(sy-hy), rx_=hx+(ax-hx)*fr;
+        add(st,'path',{d:`M${rx_+4} ${yy} L${rx_+22} ${yy}`},'stroke:'+tc(tn,'line')+';stroke-width:3;stroke-linecap:round;fill:none');
+        lab(st,rx_+30,yy,0,[[z,'b']],{anchor:'l',align:'l'}); }); });
+  }
+
+  // ───────── staircase 계단 ─────────  steps[{title,desc,tag}] 아래→위, goal
+  function staircaseX(d){
+    const s=d.steps, n=s.length, gapX=10, bw=(W-gapX*(n-1))/n, h0=150, rise=Math.min(96,(560-h0)/Math.max(1,n-1)), top=d.goal?74:14, H=top+h0+rise*(n-1)+8, st=stage(H);
+    const ramp=[['go','line'],['go',''],['sub',''],['main','']], pick=i=>ramp[Math.min(3,Math.round(i*3/Math.max(1,n-1)))];
+    const tones=['go','go','sub','main'];
+    s.forEach((m,i)=>{ const h=h0+rise*i, x=i*(bw+gapX), y=H-8-h, last=(i===n-1), tn=last?'main':tones[Math.min(3,Math.round(i*3/Math.max(1,n-1)))], p=[tn,''], dark=last;
+      if(last){ add(st,'rect',{x,y,width:bw,height:h,rx:SOLID?10:0},'fill:'+tc(tn)); gloss(st,'rect',{x,y,width:bw,height:h,rx:10},1.2); }
+      else { add(st,'rect',{x,y,width:bw,height:h,rx:SOLID?10:0},'fill:'+tc(tn,'tint')+';stroke:'+tc(tn,'line')+';stroke-width:1.5'); add(st,'rect',{x,y,width:bw,height:14,rx:SOLID?7:0},'fill:'+tc(tn)); }
+      const e=lab(st,x+22,y+30,bw-44,[],{anchor:'tl',align:'l',cls:dark?'on':''});
+      if(m.tag){ const tg=t('div','sb',m.tag); tg.style.cssText='display:inline-block;border-radius:999px;padding:1px 14px 2px;margin-bottom:8px;'+(dark?('background:#fff;color:'+tc(tn)):('color:#fff;background:'+tc(tn))); e.append(tg); }
+      const ti=t('div','h2',m.title); if(!dark) ti.style.color=tc('main'); e.append(ti); if(m.desc){ const ds=t('div','b',m.desc); if(!dark) ds.style.color='var(--ink)'; e.append(ds); }
+      e.dataset.fit=[bw-20,h-34].join(','); });
+    if(d.goal){ const gw=measure(0,[[d.goal,'h2']]).w+56, gx=W-gw; add(st,'rect',{x:gx,y:6,width:gw,height:52,rx:SOLID?26:0},'fill:'+tc('wait')); gloss(st,'rect',{x:gx,y:6,width:gw,height:52,rx:26});
+      lab(st,gx+gw/2,32,0,[[d.goal,'h2']],{cls:'on'}); add(st,'polygon',{points:`${W-bw/2-12},${60} ${W-bw/2+12},${60} ${W-bw/2},${72}`},'fill:'+tc('wait')); }
+  }
+
+  // ───────── before-after 전후 ─────────  before{title,items[]}, after{title,items[]}, lever_title, levers[]
+  function beforeAfterX(d){
+    const midW=d.levers&&d.levers.length?300:120, pw=(W-midW)/2, pad=24, hb=measure(pw-2*pad,bulletParts(d.before.items),{align:'l'}).h, ha=measure(pw-2*pad,bulletParts(d.after.items),{align:'l'}).h, H=64+Math.max(hb,ha)+2*pad+8, st=stage(H);
+    const panel=(o,x,tn,solidHead)=>{ card(st,x,0,pw,H,tn,{white:!solidHead?0:1});
+      add(st,'rect',{x,y:0,width:pw,height:58,rx:SOLID?10:0},'fill:'+(solidHead?tc(tn):tc(tn,'line'))); if(solidHead) gloss(st,'rect',{x,y:0,width:pw,height:58,rx:10});
+      lab(st,x+pad,29,pw-2*pad,[[o.title,'h2',solidHead?null:tc('mute')]],{anchor:'l',align:'l',cls:solidHead?'on':''});
+      lab(st,x+pad,64+pad,pw-2*pad,bulletParts(o.items),{anchor:'tl',align:'l'}); };
+    panel(d.before,0,'mute',false); panel(d.after,W-pw,'go',true);
+    const mx=pw+18, mw=midW-36, cy=H/2; add(st,'polygon',{points:`${mx},${cy-34} ${mx+mw-36},${cy-34} ${mx+mw-36},${cy-64} ${mx+mw},${cy} ${mx+mw-36},${cy+64} ${mx+mw-36},${cy+34} ${mx},${cy+34}`},'fill:'+tc('wait','tint')+';stroke:'+tc('wait','line')+';stroke-width:2');
+    if(d.levers&&d.levers.length){ const parts=[[d.lever_title,'sb',tc('wait')]].concat(d.levers.map(x=>[x,'bb'])), h=measure(mw-60,parts).h;
+      if(h>60){ add(st,'rect',{x:mx+6,y:cy-h/2-14,width:mw-52,height:h+28,rx:SOLID?10:0},'fill:#fff;stroke:'+tc('wait')+';stroke-width:2.5'); }
+      lab(st,mx+6+(mw-52)/2,cy,mw-72,parts,{}); }
+  }
+
+  // ───────── waterfall 증감 ─────────  start{label,value}, steps[{label,value}], end{label,value?}, unit, decimals
+  function waterfallX(d){
+    const S=d.steps, dec=d.decimals, seq=[{label:d.start.label,v0:0,v1:d.start.value,kind:'tot'}]; let run=d.start.value;
+    S.forEach(s=>{ seq.push({label:s.label,v0:run,v1:run+s.value,kind:s.value>=0?'up':'dn',dv:s.value}); run+=s.value; });
+    if(d.end&&d.end.value!=null&&Math.abs(d.end.value-run)>1e-6) throw new Error('증감 합계가 맞지 않음: 계산 '+run+' ≠ end.value '+d.end.value);
+    seq.push({label:(d.end&&d.end.label)||'',v0:0,v1:run,kind:'tot'});
+    unitLine(d.unit);
+    const lv=seq.map(q=>q.v1).concat(seq.filter(q=>q.kind!=='tot').map(q=>q.v0)), hi=Math.max(...lv), lo=Math.min(...lv), cut=(lo>0&&(hi-lo)<hi*0.45)?Math.max(0,lo-(hi-lo)*0.9):0;
+    const n=seq.length, H=d.height||520, top=52, labH=Math.max(...seq.map(q=>measure((W-20)/n-12,[[q.label,'b']]).h)), y0=H-labH-22, slot=W/n, bw=Math.min(150,slot*0.6), st=stage(H), sy=v=>y0-(Math.max(v,cut)-cut)/(hi-cut||1)*(y0-top);
+    add(st,'path',{d:`M0 ${y0} L${W} ${y0}`},'stroke:var(--ink-soft);stroke-width:2;fill:none');
+    seq.forEach((q,i)=>{ const xc=slot*(i+0.5), a=Math.min(sy(q.v0),sy(q.v1)), b=Math.max(sy(q.v0),sy(q.v1)), tn=q.kind==='tot'?'main':(q.kind==='up'?'go':'stop');
+      add(st,'rect',{x:xc-bw/2,y:a,width:bw,height:Math.max(3,b-a),rx:SOLID?5:0},'fill:'+tc(tn)); gloss(st,'rect',{x:xc-bw/2,y:a,width:bw,height:Math.max(3,b-a),rx:5},1.2);
+      if(q.kind==='tot'&&cut>0){ const by=y0-26; add(st,'path',{d:`M${xc-bw/2-6} ${by+8} L${xc+bw/2+6} ${by-8} L${xc+bw/2+6} ${by+2} L${xc-bw/2-6} ${by+18} Z`},'fill:#fff'); }
+      if(i<n-1) dots(st,xc+bw/2,sy(q.v1),xc+slot-bw/2,sy(q.v1),'mute');
+      const txt=q.kind==='tot'?fmt(q.v1,dec):((q.dv>0?'+':'−')+fmt(Math.abs(q.dv),dec)); lab(st,xc,a-8,0,[[txt,q.kind==='tot'?'v':'v',q.kind==='tot'?null:tc(tn)]],{anchor:'b'});
+      lab(st,xc,y0+12,slot-12,[[q.label,q.kind==='tot'?'bb':'b']],{anchor:'t'}); });
+    if(cut>0) root.append(t('div','src','주: 세로축은 '+fmt(cut,0)+'부터 그렸다(합계 막대 아래쪽 생략)'));
+  }
+
+  // ───────── iceberg 빙산 ─────────  above{title,items[]}, below{title,items[]}
+  function icebergX(d){
+    const tx=640, tw=W-tx-10, ha=measure(tw-40,bulletParts(d.above.items),{align:'l'}).h, hb=measure(tw-40,bulletParts(d.below.items),{align:'l'}).h;
+    const aH=Math.max(190,ha+92), bH=Math.max(330,hb+96), wl=aH+10, H=wl+bH+14, cx=310, st=stage(H);
+    add(st,'rect',{x:0,y:wl,width:W,height:H-wl,rx:SOLID?10:0},'fill:'+tc('go','tint'));
+    add(st,'path',{d:`M0 ${wl} Q ${W*0.125} ${wl-10} ${W*0.25} ${wl} T ${W*0.5} ${wl} T ${W*0.75} ${wl} T ${W} ${wl}`},'stroke:'+tc('go')+';stroke-width:3;fill:none');
+    const tip=`M${cx-110} ${wl} L${cx-50} ${wl-aH*0.52} L${cx-8} ${wl-aH*0.86} L${cx+46} ${wl-aH*0.5} L${cx+120} ${wl} Z`;
+    add(st,'path',{d:tip},'fill:'+tc('sub','tint')+';stroke:'+tc('sub')+';stroke-width:3;stroke-linejoin:round');
+    const body=`M${cx-110} ${wl} L${cx+120} ${wl} L${cx+250} ${wl+bH*0.34} L${cx+170} ${wl+bH*0.74} L${cx+30} ${wl+bH*0.95} L${cx-150} ${wl+bH*0.7} L${cx-260} ${wl+bH*0.3} Z`;
+    add(st,'path',{d:body},'fill:'+tc('main')+';stroke:'+tc('main')+';stroke-width:3;stroke-linejoin:round'); gloss(st,'path',{d:body},1.5);
+    lab(st,cx,wl+bH*0.42,300,[[d.below.title,'h1']],{cls:'on'});
+    dots(st,cx+70,wl-aH*0.5,tx-14,wl-aH*0.5,'sub'); dots(st,cx+240,wl+bH*0.42,tx-14,wl+bH*0.42,'main');
+    lab(st,tx,8,tw,[[d.above.title,'h2',tc('sub')]],{anchor:'tl',align:'l'}); lab(st,tx,54,tw-10,bulletParts(d.above.items),{anchor:'tl',align:'l'});
+    card(st,tx-10,wl+20,tw+10,bH-34,'main',{white:1}); lab(st,tx+14,wl+38,tw-30,[[d.below.title,'h2',tc('main')]],{anchor:'tl',align:'l'});
+    lab(st,tx+14,wl+84,tw-34,bulletParts(d.below.items),{anchor:'tl',align:'l'});
+  }
+
+  // ───────── swimlane 주체별 흐름 ─────────  lanes[], phases[]?, steps[{text,_lane,_col,highlight}]
+  function swimlaneX(d){
+    const lanes=d.lanes, S=d.steps, nl=lanes.length, nc=Math.max((d.phases||[]).length,...S.map(s=>s._col+1)), lw=190, top=d.phases?58:8, x0=lw+14, cw=(W-x0)/nc, bw=Math.min(300,cw-44);
+    const bhs=S.map(s=>Math.max(64,measure(bw-28,[[s.text,'bb']]).h+24)), lh=Math.max(112,Math.max(...bhs)+44), st=stage(top+nl*lh+8);
+    if(d.phases) d.phases.forEach((p,j)=>{ add(st,'rect',{x:x0+cw*j+6,y:4,width:cw-12,height:44,rx:SOLID?22:0},'fill:'+tc('mute','tint')); lab(st,x0+cw*(j+0.5),26,0,[[p,'sb']],{}); });
+    lanes.forEach((l,i)=>{ const y=top+i*lh; add(st,'rect',{x:0,y:y+4,width:W,height:lh-8,rx:SOLID?10:0},'fill:'+(i%2?'var(--fill-faint)':tc('sub','tint')));
+      add(st,'rect',{x:0,y:y+4,width:lw,height:lh-8,rx:SOLID?10:0},'fill:'+tc('main')); gloss(st,'rect',{x:0,y:y+4,width:lw,height:lh-8,rx:10},1.1);
+      lab(st,lw/2,y+lh/2,lw-24,[[l,'h2']],{cls:'on',fit:[lw-8,lh-12]}); });
+    for(let j=1;j<nc;j++) add(st,'path',{d:`M${x0+cw*j} ${top+8} L${x0+cw*j} ${top+nl*lh-8}`},'stroke:var(--grid-line);stroke-width:1.5;stroke-dasharray:4 6;fill:none');
+    const pos=S.map((s,k)=>({x:x0+cw*(s._col+0.5),y:top+lh*(s._lane+0.5),h:bhs[k]}));
+    for(let k=0;k<S.length-1;k++){ const a=pos[k], b=pos[k+1], col=tc('mute'); let dth, ex, ey, hd;
+      if(Math.abs(a.y-b.y)<2){ dth=`M${a.x+bw/2} ${a.y} L${b.x-bw/2-14} ${b.y}`; ex=b.x-bw/2-14; ey=b.y; hd='r'; }
+      else if(Math.abs(a.x-b.x)<2){ const dn=b.y>a.y; dth=`M${a.x} ${a.y+(dn?a.h/2:-a.h/2)} L${b.x} ${b.y+(dn?-b.h/2-14:b.h/2+14)}`; ex=b.x; ey=b.y+(dn?-b.h/2-14:b.h/2+14); hd=dn?'d':'u'; }
+      else { const dn=b.y>a.y, mx=a.x+bw/2+(b.x-bw/2-a.x-bw/2)/2; if(b.x>a.x){ dth=`M${a.x+bw/2} ${a.y} L${mx} ${a.y} L${mx} ${b.y} L${b.x-bw/2-14} ${b.y}`; ex=b.x-bw/2-14; ey=b.y; hd='r'; }
+        else { dth=`M${a.x} ${a.y+(dn?a.h/2:-a.h/2)} L${a.x} ${(a.y+b.y)/2} L${b.x} ${(a.y+b.y)/2} L${b.x} ${b.y+(dn?-b.h/2-14:b.h/2+14)}`; ex=b.x; ey=b.y+(dn?-b.h/2-14:b.h/2+14); hd=dn?'d':'u'; } }
+      add(st,'path',{d:dth},'stroke:'+col+';stroke-width:3;fill:none;stroke-linejoin:round');
+      add(st,'polygon',{points:hd==='r'?`${ex},${ey-7} ${ex+14},${ey} ${ex},${ey+7}`:(hd==='d'?`${ex-7},${ey} ${ex},${ey+14} ${ex+7},${ey}`:`${ex-7},${ey} ${ex},${ey-14} ${ex+7},${ey}`)},'fill:'+col); }
+    S.forEach((s,k)=>{ const p=pos[k], hot=s.highlight; card(st,p.x-bw/2,p.y-p.h/2,bw,p.h,hot?'wait':'sub',hot?{solid:1}:{white:1,strong:0});
+      lab(st,p.x,p.y,bw-28,[[s.text,'bb']],{cls:hot?'on':'',fit:[bw-6,p.h-4]}); });
+  }
+
+  // ───────── logic-tree 이슈 트리 ─────────  root{title,desc}, children[{title,children[{title}]}]
+  function logicTreeX(d){
+    const C=d.children, rw=250, mw=310, lw=W-rw-mw-2*90, lx=W-lw, mx=rw+90, lgap=12, ggap=26;
+    C.forEach(c=>{ c._lh=(c.children||[]).map(l=>Math.max(58,measure(lw-36,[[l.title,'b']],{align:'l'}).h+22)); c._h=Math.max(84,c._lh.reduce((a,b)=>a+b,0)+lgap*Math.max(0,c._lh.length-1)); });
+    const H=C.reduce((a,c)=>a+c._h,0)+ggap*(C.length-1)+12, st=stage(H); let y=6;
+    const rh=Math.max(150,measure(rw-36,[[d.root.title,'h1'],[d.root.desc,'b']]).h+44), ry=H/2;
+    const curve=(x1,y1,x2,y2,tn)=>{ const m=(x1+x2)/2; add(st,'path',{d:`M${x1} ${y1} C ${m} ${y1}, ${m} ${y2}, ${x2} ${y2}`},'stroke:'+tc(tn,'line')+';stroke-width:4;fill:none;stroke-linecap:round'); };
+    C.forEach((c,i)=>{ const tn=c.tone||['go','sub','main','wait'][i%4], cy=y+c._h/2, mh=Math.max(76,measure(mw-36,[[c.title,'h2'],[c.desc,'s']]).h+26);
+      curve(rw,ry,mx,cy,tn); let ly=y+(c._h-(c._lh.reduce((a,b)=>a+b,0)+lgap*Math.max(0,c._lh.length-1)))/2;
+      (c.children||[]).forEach((l,j)=>{ const h=c._lh[j]; curve(mx+mw,cy,lx,ly+h/2,tn); card(st,lx,ly,lw,h,tn,{}); add(st,'rect',{x:lx,y:ly+8,width:6,height:h-16,rx:3},'fill:'+tc(tn));
+        lab(st,lx+22,ly+h/2,lw-36,[[l.title,'b']],{anchor:'l',align:'l',fit:[lw-10,h]}); ly+=h+lgap; });
+      card(st,mx,cy-mh/2,mw,mh,tn,{solid:1}); lab(st,mx+mw/2,cy,mw-36,[[c.title,'h2'],[c.desc,'s']],{cls:'on',fit:[mw-8,mh-4]}); y+=c._h+ggap; });
+    card(st,0,ry-rh/2,rw,rh,'main',{solid:1,r:14}); lab(st,rw/2,ry,rw-36,[[d.root.title,'h1'],[d.root.desc,'b']],{cls:'on',fit:[rw-8,rh-6]});
+  }
+
+  // ═════════════════════════ 기존 템플릿 11종의 새 디자인 (v2.4) ═════════════════════════
+  // 각 템플릿 html 과 같은 사양을 그대로 받는다. 밑줄 키(_lane·_w·_level …)도 같은 뜻이다.
+  function sum(a){ return a.reduce((x,y)=>x+y,0); }
+  function pillBox(st,x,y,w,h,tn,solid){ add(st,'rect',{x,y,width:w,height:h,rx:SOLID?h/2:0},solid?('fill:'+tc(tn)):('fill:'+tc(tn,'tint')+';stroke:'+tc(tn,'line')+';stroke-width:1.5')); if(solid) gloss(st,'rect',{x,y,width:w,height:h,rx:h/2},1.1); }
+  function chev2(st,x,y,tn){ for(let k=0;k<2;k++){ const xx=x+k*13-6; add(st,'path',{d:`M${xx-5} ${y-12} L${xx+6} ${y} L${xx-5} ${y+12}`},'fill:none;stroke:'+tc(tn||'mute')+';stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;opacity:'+(k?1:.45)); } }
+  function curveL(st,x1,y1,x2,y2,tn,vert){ const d=vert?`M${x1} ${y1} C ${x1} ${(y1+y2)/2}, ${x2} ${(y1+y2)/2}, ${x2} ${y2}`:`M${x1} ${y1} C ${(x1+x2)/2} ${y1}, ${(x1+x2)/2} ${y2}, ${x2} ${y2}`;
+    add(st,'path',{d},'stroke:'+tc(tn,'line')+';stroke-width:4;fill:none;stroke-linecap:round'); }
+  function flat(s){ return String(s==null?'':s).replace(/\n/g,' '); }
+
+  // ───────── flow-process ─────────  steps[{num,title,desc,highlight}], gates[{after,label}]
+  function flowProcessX(d){
+    const S=d.steps, n=S.length, gap=40, bw=(W-gap*(n-1))/n, pad=22, G=d.gates||[], top=8;
+    const bh=Math.max(...S.map(s=>measure(bw-2*pad,[[s.title,'h2'],[s.desc,'b']],{align:'l'}).h))+pad*2+(S.some(s=>s.num!=null)?58:10), st=stage(top+bh+(G.length?78:10));
+    S.forEach((s,i)=>{ const x=i*(bw+gap), hot=s.highlight, tn=hot?'main':(i%2?'sub':'go'); card(st,x,top,bw,bh,tn,hot?{solid:1}:{});
+      if(!hot) add(st,'rect',{x,y:top,width:bw,height:12,rx:SOLID?6:0},'fill:'+tc(tn));
+      let ty=top+pad+6; if(s.num!=null){ add(st,'circle',{cx:x+pad+22,cy:top+pad+28,r:22},'fill:'+(hot?'#fff':tc(tn))); lab(st,x+pad+22,top+pad+28,0,[[String(s.num),'h2',hot?tc(tn):'#fff']]); ty=top+pad+62; }
+      lab(st,x+pad,ty,bw-2*pad,[[s.title,'h2',hot?null:tc(tn)],[s.desc,'b']],{anchor:'tl',align:'l',cls:hot?'on':''});
+      if(i<n-1) chev2(st,x+bw+gap/2,top+bh/2,'mute'); });
+    G.forEach(g=>{ const gx=g.after*(bw+gap)-gap/2, gy=top+bh+22, w=measure(0,[[g.label,'sb']]).w+38;
+      add(st,'path',{d:`M${gx} ${top+bh/2+18} L${gx} ${gy}`},'stroke:'+tc('wait')+';stroke-width:2.5;stroke-dasharray:5 5;fill:none');
+      add(st,'polygon',{points:`${gx},${gy-11} ${gx+11},${gy} ${gx},${gy+11} ${gx-11},${gy}`},'fill:'+tc('wait'));
+      const px=Math.max(0,Math.min(W-w,gx-w/2)); pillBox(st,px,gy+16,w,40,'wait',false); lab(st,px+w/2,gy+36,0,[[g.label,'sb',tc('wait')]]); });
+  }
+
+  // ───────── org-chart ─────────  root{title,desc}, advisory{title,desc}, children[{title,lead,desc}]
+  function orgChartX(d){
+    const C=d.children, n=C.length, gap=16, cw=(W-gap*(n-1))/n, rw=440, top=6, rx=W/2-rw/2;
+    const rh=Math.max(100,measure(rw-40,[[d.root.title,'h1'],[d.root.desc,'b']]).h+36), cy0=top+rh+96, parts=c=>[[c.title,'h2'],[c.lead,'b'],[c.desc,'s']];
+    const ch=Math.max(116,...C.map(c=>measure(cw-28,parts(c)).h+48)), st=stage(cy0+ch+8);
+    C.forEach((c,i)=>curveL(st,W/2,top+rh,i*(cw+gap)+cw/2,cy0,i%2?'sub':'go',true));
+    if(d.advisory){ const ax=rx+rw+76, aw=Math.min(310,W-ax), ah=Math.max(90,measure(aw-32,[[d.advisory.title,'h2'],[d.advisory.desc,'b']]).h+30), ay=top+rh/2-ah/2;
+      add(st,'path',{d:`M${rx+rw} ${top+rh/2} L${ax} ${top+rh/2}`},'stroke:'+tc('wait')+';stroke-width:3;stroke-dasharray:6 6;fill:none');
+      card(st,ax,Math.max(0,ay),aw,ah,'wait',{strong:1}); lab(st,ax+aw/2,Math.max(0,ay)+ah/2,aw-32,[[d.advisory.title,'h2',tc('wait')],[d.advisory.desc,'b']],{fit:[aw-6,ah-4]}); }
+    card(st,rx,top,rw,rh,'main',{solid:1,r:14}); lab(st,W/2,top+rh/2,rw-40,[[d.root.title,'h1'],[d.root.desc,'b']],{cls:'on',fit:[rw-8,rh-6]});
+    C.forEach((c,i)=>{ const x=i*(cw+gap), tn=c.tone||(i%2?'sub':'go'); card(st,x,cy0,cw,ch,tn,{}); add(st,'rect',{x,y:cy0,width:cw,height:12,rx:SOLID?6:0},'fill:'+tc(tn));
+      const p=parts(c); p[0][2]=tc(tn); lab(st,x+cw/2,cy0+ch/2+6,cw-28,p,{fit:[cw-6,ch-14]}); });
+  }
+
+  // ───────── structure-block ─────────  layers[{label,boxes[{title,desc}]}]
+  function structureBlockX(d){
+    const Ls=d.layers, lw=168, pad=16, bg=14, gap=14, tones=['main','sub','go','wait','mute'], rows=[]; let y=6;
+    Ls.forEach((l,i)=>{ const n=l.boxes.length, bw=(W-lw-18-2*pad-(n-1)*bg)/n, h=Math.max(...l.boxes.map(b=>measure(bw-28,[[b.title,'h2'],[b.desc,'b']]).h))+30; rows.push({l,i,y,h:h+2*pad,bw,bh:h}); y+=h+2*pad+gap; });
+    const st=stage(y-gap+8);
+    rows.forEach(r=>{ const tn=r.l.tone||tones[r.i%5], bx=lw+18; add(st,'rect',{x:bx,y:r.y,width:W-bx,height:r.h,rx:SOLID?10:0},'fill:'+tc(tn,'tint'));
+      add(st,'rect',{x:0,y:r.y,width:lw,height:r.h,rx:SOLID?10:0},'fill:'+tc(tn)); gloss(st,'rect',{x:0,y:r.y,width:lw,height:r.h,rx:10},1.1); lab(st,lw/2,r.y+r.h/2,lw-20,[[r.l.label,'h2']],{cls:'on',fit:[lw-6,r.h-6]});
+      r.l.boxes.forEach((b,j)=>{ const x=bx+pad+j*(r.bw+bg); card(st,x,r.y+pad,r.bw,r.bh,tn,{white:1}); lab(st,x+r.bw/2,r.y+pad+r.bh/2,r.bw-28,[[b.title,'h2',tc(tn)],[b.desc,'b']],{fit:[r.bw-6,r.bh-4]}); }); });
+  }
+
+  // ───────── layer-stack ─────────  upper{title,flag,blocks[]}, divider{up,down}, lower{…}, band{steps[{num,text,sub}],note}
+  function layerStackX(d){
+    const pad=22, bg=14, row=o=>{ const n=o.blocks.length, bw=(W-2*pad-(n-1)*bg)/n, bh=Math.max(...o.blocks.map(b=>measure(bw-24,[[b,'bb']]).h))+32; return {n,bw,bh,h:68+bh+pad}; };
+    const U=row(d.upper), Lr=row(d.lower), dh=d.divider?92:24, B=d.band, bandH=B?(22+86+(B.note?measure(W-20,[[B.note,'s']],{align:'l'}).h+14:0)):0, st=stage(U.h+dh+Lr.h+bandH+8);
+    const panel=(o,r,y,tn,dash)=>{ add(st,'rect',{x:0,y,width:W,height:r.h,rx:SOLID?12:0},'fill:'+tc(tn,'tint')+';stroke:'+tc(tn)+';stroke-width:2.5'+(dash?';stroke-dasharray:9 7':''));
+      lab(st,pad,y+36,W-2*pad-260,[[o.title,'h2',tc(tn)]],{anchor:'l',align:'l'});
+      if(o.flag){ const fw=measure(0,[[o.flag,'sb']]).w+36; pillBox(st,W-pad-fw,y+15,fw,42,tn,true); lab(st,W-pad-fw/2,y+36,0,[[o.flag,'sb']],{cls:'on'}); }
+      o.blocks.forEach((b,j)=>{ const x=pad+j*(r.bw+bg); card(st,x,y+68,r.bw,r.bh,tn,{white:1}); lab(st,x+r.bw/2,y+68+r.bh/2,r.bw-24,[[b,'bb']],{fit:[r.bw-4,r.bh-2]}); }); };
+    panel(d.upper,U,0,'go',true);
+    if(d.divider){ const cy=U.h+dh/2, cx=W/2, ar=(x,up,tn)=>{ add(st,'path',{d:`M${x} ${cy-(up?-26:26)} L${x} ${cy+(up?-20:20)}`},'stroke:'+tc(tn)+';stroke-width:6;stroke-linecap:round;fill:none');
+        add(st,'polygon',{points:up?`${x-13},${cy-18} ${x},${cy-36} ${x+13},${cy-18}`:`${x-13},${cy+18} ${x},${cy+36} ${x+13},${cy+18}`},'fill:'+tc(tn)); };
+      ar(cx-26,true,'go'); ar(cx+26,false,'main'); lab(st,cx-60,cy,cx-80,[[d.divider.up,'bb',tc('go')]],{anchor:'r',align:'r'}); lab(st,cx+60,cy,cx-80,[[d.divider.down,'bb',tc('main')]],{anchor:'l',align:'l'}); }
+    panel(d.lower,Lr,U.h+dh,'main',false);
+    if(B){ const y=U.h+dh+Lr.h+22, n=B.steps.length, sw=W/n, sl=26; B.steps.forEach((s,i)=>{ const x=i*sw, tn=['go','sub','main','wait'][Math.min(3,Math.round(i*3/Math.max(1,n-1)))], x2=x+sw-8;
+        const p=`${x+(i?0:0)},${y} ${x2-sl},${y} ${x2},${y+43} ${x2-sl},${y+86} ${x},${y+86} ${i?x+sl:x},${y+43}`; add(st,'polygon',{points:p},'fill:'+tc(tn)); if(GL>0) add(st,'polygon',{points:p},'fill:'+grad(st,[[0,'#fff',GL*1.3],[1,'#000',GL*0.45]]));
+        const tx=x+(i?sl:0)+18; if(s.num!=null){ add(st,'circle',{cx:tx+20,cy:y+43,r:20},'fill:#fff'); lab(st,tx+20,y+43,0,[[String(s.num),'h2',tc(tn)]]); }
+        lab(st,tx+(s.num!=null?52:0),y+43,x2-sl-tx-(s.num!=null?56:4),[[s.text,'h2'],[s.sub,'s']],{anchor:'l',align:'l',cls:'on',fit:[sw,84]}); });
+      if(B.note) lab(st,4,y+100,W-20,[[B.note,'s']],{anchor:'tl',align:'l'}); }
+  }
+
+  // ───────── concept-argument ─────────  center{title,desc}, supports[{title,desc}]
+  function conceptArgumentX(d){
+    const S=d.supports, n=S.length, k=Math.ceil(n/2), cols=[S.slice(0,k),S.slice(k)], cw=410, gap=16, cr=156, par=s=>[[s.title,'h2'],[flat(s.desc),'b']];
+    const hs=cols.map(c=>c.map(s=>Math.max(92,measure(cw-52,par(s),{align:'l'}).h+28))), colH=hs.map(h=>sum(h)+gap*Math.max(0,h.length-1)), H=Math.max(...colH,2*cr+16)+12, st=stage(H), cx=W/2, cy=H/2;
+    cols.forEach((c,ci)=>{ const left=ci===0, tn=left?'go':'sub', x=left?0:W-cw; let y=(H-colH[ci])/2;
+      c.forEach((s,j)=>{ const h=hs[ci][j]; curveL(st,left?cw:x,y+h/2,left?cx-cr+8:cx+cr-8,cy+(y+h/2-cy)*0.34,tn); card(st,x,y,cw,h,tn,{}); add(st,'rect',{x:left?x:x+cw-8,y:y+10,width:8,height:h-20,rx:4},'fill:'+tc(tn));
+        const p=par(s); p[0][2]=tc(tn); lab(st,x+(left?28:20),y+h/2,cw-52,p,{anchor:'l',align:'l',fit:[cw-10,h-4]}); y+=h+gap; }); });
+    add(st,'circle',{cx,cy,r:cr+10},'fill:#fff'); add(st,'circle',{cx,cy,r:cr},'fill:'+tc('main'));
+    if(GL>0) add(st,'circle',{cx,cy,r:cr},'fill:'+grad(st,[[0,'#fff',GL*1.6],[0.75,'#fff',0],[1,'#000',GL*0.5]],{radial:1,attrs:{cx:0.36,cy:0.3,r:0.85}}));
+    lab(st,cx,cy,cr*1.72,[[d.center.title,'h1'],[d.center.desc,'b']],{cls:'on',fit:[cr*1.95,cr*1.9]});
+  }
+
+  // ───────── comparison-matrix ─────────  columns[], rows[[…]], key_column
+  function comparisonMatrixX(d){
+    const C=d.columns, R=d.rows, nc=C.length, key=!!d.key_column, kw=key?Math.round(W*0.27):0, cw=key?(W-kw)/(nc-1):W/nc, xs=i=>key?(i===0?0:kw+(i-1)*cw):i*cw, ws=i=>(key&&i===0)?kw:cw, pad=22, hh=66;
+    const rhs=R.map(r=>Math.max(64,...r.map((c,i)=>measure(ws(i)-2*pad,[[c,(key&&i===0)?'bb':'b']],{align:'l'}).h+30))), st=stage(hh+sum(rhs)+8);
+    add(st,'rect',{x:0,y:0,width:W,height:hh,rx:SOLID?10:0},'fill:'+tc('main')); gloss(st,'rect',{x:0,y:0,width:W,height:hh,rx:10},1.1);
+    C.forEach((c,i)=>lab(st,xs(i)+pad,hh/2,ws(i)-2*pad,[[c,'h2']],{anchor:'l',align:'l',cls:'on'}));
+    let y=hh; R.forEach((r,ri)=>{ const h=rhs[ri]; add(st,'rect',{x:0,y,width:W,height:h},'fill:'+(ri%2?'var(--fill-faint)':'var(--card-fill)'));
+      if(key){ add(st,'rect',{x:0,y,width:kw,height:h},'fill:'+tc('go','tint')); add(st,'rect',{x:0,y:y+8,width:7,height:h-16,rx:3},'fill:'+tc('go')); }
+      add(st,'path',{d:`M0 ${y+h} L${W} ${y+h}`},'stroke:var(--grid-line);stroke-width:1.5;fill:none');
+      r.forEach((c,i)=>lab(st,xs(i)+pad,y+h/2,ws(i)-2*pad,[[c,(key&&i===0)?'bb':'b',(key&&i===0)?tc('main'):null]],{anchor:'l',align:'l'})); y+=h; });
+  }
+
+  // ───────── matrix-heatmap ─────────  columns[{name,tag}], groups[{band,rows[{label,base,cells[{text,_level}],_emphasis}]}], top_arrow{label}, legend[{text,_level}]
+  function matrixHeatmapX(d){
+    const C=d.columns, nj=C.length-1, hasBand=d.groups.some(g=>g.band), bw=hasBand?70:0, rl=240, base=290, g=8, x0=bw+(hasBand?g:0), xb=x0+rl+g, xj=xb+base+g, cw=(W-xj-g*(nj-1))/nj, jx=j=>xj+j*(cw+g);
+    const top=d.top_arrow?48:6, hh=Math.max(86,...C.map((c,i)=>measure((i?cw:base)-24,[[c.name,'h2'],[c.tag,'s']]).h+26));
+    const rowsAll=[]; d.groups.forEach(G=>G.rows.forEach(r=>{ r._h=Math.max(84,measure(rl-28,[[r.label,'bb']],{align:'l'}).h+26,measure(base-28,[[r.base,'s']],{align:'l'}).h+26,...r.cells.map(c=>measure(cw-20,[[c.text,'bb']]).h+24)); rowsAll.push(r); }));
+    const st=stage(top+hh+g+sum(rowsAll.map(r=>r._h+g))+6*(d.groups.length-1)+4);
+    if(d.top_arrow){ const ax0=jx(0), ax1=W-4, tw=measure(0,[[d.top_arrow.label,'bb']]).w; add(st,'path',{d:`M${ax0} 22 L${(ax0+ax1)/2-tw/2-16} 22 M${(ax0+ax1)/2+tw/2+16} 22 L${ax1-14} 22`},'stroke:'+tc('mute')+';stroke-width:3;fill:none;stroke-linecap:round');
+      add(st,'polygon',{points:`${ax1-14},14 ${ax1},22 ${ax1-14},30`},'fill:'+tc('mute')); lab(st,(ax0+ax1)/2,22,0,[[d.top_arrow.label,'bb',tc('mute')]]); }
+    C.forEach((c,i)=>{ const x=i?jx(i-1):xb, w=i?cw:base; add(st,'rect',{x,y:top,width:w,height:hh,rx:SOLID?10:0},i?('fill:'+tc('main')):('fill:'+tc('mute','line'))); if(i) gloss(st,'rect',{x,y:top,width:w,height:hh,rx:10},1.1);
+      lab(st,x+w/2,top+hh/2,w-24,[[c.name,'h2',i?null:tc('main')],[c.tag,'s',i?null:'var(--ink)']],{cls:i?'on':''}); });
+    const lv=[['mute','tint'],['go','tint'],['go','line'],['main','']]; let y=top+hh+g;
+    d.groups.forEach(G=>{ const gy=y; G.rows.forEach(r=>{ const h=r._h; add(st,'rect',{x:x0,y,width:rl,height:h,rx:SOLID?8:0},'fill:var(--fill-faint);stroke:var(--line-soft);stroke-width:1.5'); lab(st,x0+14,y+h/2,rl-28,[[r.label,'bb']],{anchor:'l',align:'l'});
+        add(st,'rect',{x:xb,y,width:base,height:h,rx:SOLID?8:0},'fill:'+tc('mute','tint')); lab(st,xb+14,y+h/2,base-28,[[r.base,'s','var(--ink)']],{anchor:'l',align:'l'});
+        r.cells.forEach((c,j)=>{ const L=Math.max(1,Math.min(3,c._level||1)), p=lv[L]; add(st,'rect',{x:jx(j),y,width:cw,height:h,rx:SOLID?8:0},'fill:'+tc(p[0],p[1])); if(L===3) gloss(st,'rect',{x:jx(j),y,width:cw,height:h,rx:8},1.1);
+          lab(st,jx(j)+cw/2,y+h/2,cw-20,[[c.text,L===3?'bb':'b',L===2?tc('main'):null]],{cls:L===3?'on':'',fit:[cw-4,h-2]}); });
+        if(r._emphasis) add(st,'rect',{x:x0-4,y:y-4,width:W-x0+6,height:h+8,rx:SOLID?11:0},'fill:none;stroke:'+tc('wait')+';stroke-width:4'); y+=h+g; });
+      if(G.band){ add(st,'rect',{x:0,y:gy,width:bw,height:y-g-gy,rx:SOLID?10:0},'fill:'+tc('sub')); lab(st,bw/2,(gy+y-g)/2,bw-8,[[G.band,'bb']],{cls:'on',fit:[bw,y-g-gy]}); } y+=6; });
+    if(d.legend) legend(d.legend.map(l=>{ const p=lv[Math.max(0,Math.min(3,l._level||0))]; return {label:l.text,color:tc(p[0],p[1])}; })).style.margin='14px 0 0';
+  }
+
+  // ───────── decision-flow ─────────  gates[{num,name,count,principles[{id,text}],fail}], final, legend[{text,_kind}]
+  function decisionFlowX(d){
+    const G=d.gates, mw=830, fx=mw+120, fw=W-fx, pad=24, gap=46, pos=[]; let y=6;
+    G.forEach(g=>{ const ph=measure(mw-2*pad-8,(g.principles||[]).map(p=>[p.id+'  '+p.text,'b']),{align:'l'}).h, h=70+ph+pad; pos.push({g,y,h}); y+=h+gap; });
+    const fh=d.final?Math.max(72,measure(mw-48,[[d.final,'h2']]).h+32):0, st=stage(y-gap+(d.final?gap+fh:0)+8);
+    pos.forEach((p,i)=>{ const g=p.g, cy=p.y+p.h/2; card(st,0,p.y,mw,p.h,'go',{white:1}); add(st,'rect',{x:0,y:p.y,width:mw,height:60,rx:SOLID?10:0},'fill:'+tc('go','tint'));
+      let tx=pad; if(g.num!=null){ const nw=measure(0,[[g.num,'sb']]).w+30; pillBox(st,pad-6,p.y+10,nw,40,'go',true); lab(st,pad-6+nw/2,p.y+30,0,[[g.num,'sb']],{cls:'on'}); tx=pad+nw+8; }
+      lab(st,tx,p.y+30,0,[[g.name,'h2']],{anchor:'l',align:'l'}); if(g.count) lab(st,mw-pad,p.y+30,0,[[g.count,'sb',tc('go')]],{anchor:'r',align:'r'});
+      lab(st,pad,p.y+72,mw-2*pad-8,(g.principles||[]).map(q=>[q.id+'  '+q.text,'b']),{anchor:'tl',align:'l'});
+      const ny=(i<pos.length-1)?pos[i+1].y:(d.final?p.y+p.h+gap:null); if(ny!=null){ add(st,'path',{d:`M${mw/2} ${p.y+p.h} L${mw/2} ${ny-16}`},'stroke:'+tc('go')+';stroke-width:5;fill:none'); add(st,'polygon',{points:`${mw/2-12},${ny-18} ${mw/2+12},${ny-18} ${mw/2},${ny-2}`},'fill:'+tc('go')); }
+      if(g.fail){ const h=Math.max(74,measure(fw-36,[[g.fail,'s']],{align:'l'}).h+28); add(st,'path',{d:`M${mw} ${cy} L${fx-18} ${cy}`},'stroke:'+tc('stop')+';stroke-width:3;stroke-dasharray:7 6;fill:none'); add(st,'polygon',{points:`${fx-18},${cy-8} ${fx-4},${cy} ${fx-18},${cy+8}`},'fill:'+tc('stop'));
+        add(st,'rect',{x:fx,y:cy-h/2,width:fw,height:h,rx:SOLID?10:0},'fill:'+tc('stop','tint')+';stroke:'+tc('stop')+';stroke-width:2;stroke-dasharray:7 5'); lab(st,fx+18,cy,fw-36,[[g.fail,'s',tc('stop')]],{anchor:'l',align:'l'}); } });
+    if(d.final){ const fy=y-gap+gap; add(st,'rect',{x:0,y:fy,width:mw,height:fh,rx:SOLID?12:0},'fill:'+tc('main')); gloss(st,'rect',{x:0,y:fy,width:mw,height:fh,rx:12}); lab(st,mw/2,fy+fh/2,mw-48,[[d.final,'h2']],{cls:'on'}); }
+    if(d.legend) legend(d.legend.map(l=>({label:l.text,color:tc(l._kind==='fail'?'stop':'go'),shape:'ln'}))).style.margin='14px 0 0';
+  }
+
+  // ───────── timeline-gantt ─────────  columns[], stages[{badge,label,bar_label,start,end,gate}], top_note, milestones[{label,date,col}],
+  //                                     deliverable_boxes[{text,from_col,to_col}], cumulative, footer{dept_label,dept_value,dept_list,donut_pct,donut_headline,donut_sub}
+  function timelineGanttX(d){
+    const C=d.columns, nc=C.length, S=d.stages, lw=258, x0=lw+16, cum=d.cumulative?150:0, x1=W-cum-(cum?16:0), cw=(x1-x0)/nc, cx=c=>x0+cw*c, top=d.top_note?52:6, hh=50, rh=80;
+    const gy=top+hh+12, msY=gy+S.length*rh+18, msH=d.milestones?76:0, dbY=msY+msH+4, dbH=d.deliverable_boxes?86:0, ft=d.footer, fY=dbY+dbH+26, fH=ft?136:0, st=stage(fY+fH+4);
+    if(d.top_note) lab(st,cx(d.top_note_col||0)+6,22,0,[[d.top_note,'sb',tc('wait')]],{anchor:'l',align:'l'});
+    C.forEach((c,j)=>{ pillBox(st,cx(j)+5,top,cw-10,hh,'main',false); lab(st,cx(j)+cw/2,top+hh/2,0,[[c,'bb',tc('main')]]); });
+    S.forEach((s,i)=>{ const y=gy+i*rh, tn=s.tone||(i%2?'sub':'go'), bx=cx(s.start), bx2=Math.min(x1,cx(s.end));
+      if(i%2===0) add(st,'rect',{x:0,y:y+2,width:x1,height:rh-4,rx:SOLID?8:0},'fill:var(--fill-faint)');
+      if(s.badge!=null){ pillBox(st,4,y+rh/2-21,78,42,'main',true); lab(st,43,y+rh/2,0,[[s.badge,'sb']],{cls:'on'}); }
+      lab(st,94,y+rh/2,lw-96,[[flat(s.label),'sb','var(--ink)']],{anchor:'l',align:'l',fit:[lw-90,rh]});
+      add(st,'rect',{x:bx,y:y+15,width:bx2-bx,height:rh-30,rx:SOLID?12:0},'fill:'+tc(tn)); gloss(st,'rect',{x:bx,y:y+15,width:bx2-bx,height:rh-30,rx:12},1.2);
+      if(s.bar_label) lab(st,bx+18,y+rh/2,0,[[s.bar_label,'bb']],{anchor:'l',align:'l',cls:'on',fit:[bx2-bx-20,rh-28]});
+      if(s.gate){ const gx=bx2, gyy=y+rh/2; add(st,'polygon',{points:`${gx},${gyy-17} ${gx+17},${gyy} ${gx},${gyy+17} ${gx-17},${gyy}`},'fill:'+tc('wait')+';stroke:#fff;stroke-width:3');
+        const right=gx+210<x1; lab(st,gx+(right?24:-26),gyy,0,[[flat(s.gate),'sb',right?tc('wait'):null]],{anchor:right?'l':'r',cls:right?'halo':'on'}); } });
+    for(let j=0;j<=nc;j++) add(st,'path',{d:`M${cx(j)} ${gy} L${cx(j)} ${gy+S.length*rh}`},'stroke:var(--grid-line);stroke-width:1.5;stroke-dasharray:4 6;fill:none');
+    (d.milestones||[]).forEach(m=>{ const mx=m.col>=nc-1?x1:cx(m.col), an=m.col>=nc-1?'tr':(m.col===0?'tl':'t'); add(st,'path',{d:`M${mx} ${gy+S.length*rh} L${mx} ${msY+8}`},'stroke:'+tc('main')+';stroke-width:2.5;fill:none');
+      add(st,'polygon',{points:`${mx},${msY-2} ${mx+13},${msY+11} ${mx},${msY+24} ${mx-13},${msY+11}`},'fill:'+tc('main')); lab(st,mx+(an==='tl'?20:(an==='tr'?-20:0)),msY+(an==='t'?28:-2),0,[[m.label+'  '+(m.date||''),'bb',tc('main')]],{anchor:an==='t'?'t':an}); });
+    (d.deliverable_boxes||[]).forEach(b=>{ const xa=cx(b.from_col)+5, xb=(b.to_col>=nc-1?x1:cx(b.to_col))-5; card(st,xa,dbY,xb-xa,dbH-8,'go',{strong:1}); lab(st,(xa+xb)/2,dbY+(dbH-8)/2,xb-xa-24,[[flat(b.text),'bb',tc('go')]],{fit:[xb-xa,dbH-8]}); });
+    if(d.cumulative){ const x=x1+16, h=dbY+dbH-8-gy; add(st,'rect',{x,y:gy,width:cum,height:h,rx:SOLID?12:0},'fill:'+tc('main')); gloss(st,'rect',{x,y:gy,width:cum,height:h,rx:12}); lab(st,x+cum/2,gy+h/2,cum-16,[[d.cumulative,'h1']],{cls:'on',fit:[cum,h]}); }
+    if(ft){ add(st,'rect',{x:0,y:fY,width:W,height:fH,rx:SOLID?12:0},'fill:var(--fill-faint);stroke:var(--line-soft);stroke-width:1.5');
+      const pw=measure(0,[[ft.dept_label,'sb']]).w+34; pillBox(st,22,fY+20,pw,42,'sub',true); lab(st,22+pw/2,fY+41,0,[[ft.dept_label,'sb']],{cls:'on'});
+      lab(st,22+pw+18,fY+41,0,[[ft.dept_value,'h2']],{anchor:'l',align:'l'}); lab(st,24,fY+72,W*0.56,[[flat(ft.dept_list),'s']],{anchor:'tl',align:'l'});
+      if(ft.donut_pct!=null){ const dx=W*0.64, dy=fY+fH/2, r=44, c=2*Math.PI*r; add(st,'circle',{cx:dx,cy:dy,r},'fill:none;stroke:'+tc('wait','tint')+';stroke-width:16');
+        add(st,'circle',{cx:dx,cy:dy,r,transform:`rotate(-90 ${dx} ${dy})`},'fill:none;stroke:'+tc('wait')+';stroke-width:16;stroke-dasharray:'+(c*ft.donut_pct/100).toFixed(1)+' '+c.toFixed(1));
+        lab(st,dx,dy,0,[[ft.donut_pct+'%','bb',tc('wait')]]); lab(st,dx+r+28,dy,W-dx-r-40,[[ft.donut_headline,'h2'],[ft.donut_sub,'s']],{anchor:'l',align:'l'}); } }
+  }
+
+  // ───────── timeline-tracks ─────────  axis{start,end,step}, tracks[{name,_tone,nodes[{at,to,year,label,_lane,_align,_w}]}]
+  function timelineTracksX(d){
+    const A=d.axis, T=d.tracks, lw=156, x0=lw+34, x1=W-34, sx=v=>x0+(v-A.start)/(A.end-A.start)*(x1-x0), tones=['main','main','go','sub','wait']; let y=6; const L=[];
+    T.forEach(t_=>{ const lanes=Math.max(...t_.nodes.map(n=>n._lane||0))+1, ch=Math.max(...t_.nodes.map(n=>measure(Math.max(n._w||240,270)-28,[[n.year,'bb'],[n.label,'b']],{align:'l'}).h))+20, laneH=ch+12, h=lanes*laneH+52; L.push({t_,y,h,ch,laneH}); y+=h+12; });
+    const st=stage(y+44), step=A.step||1, every=((A.end-A.start)/step>14)?2:1;
+    for(let v=A.start,k=0;v<=A.end+1e-9;v+=step,k++){ add(st,'path',{d:`M${sx(v)} 6 L${sx(v)} ${y}`},'stroke:var(--grid-line);stroke-width:1.5;stroke-dasharray:4 6;fill:none'); if(k%every===0) lab(st,sx(v),y+8,0,[[String(v),'b']],{anchor:'t'}); }
+    add(st,'path',{d:`M${x0-10} ${y} L${x1+10} ${y}`},'stroke:var(--ink-soft);stroke-width:2;fill:none');
+    L.forEach(o=>{ const t_=o.t_, tn=tones[Math.min(4,t_._tone||1)], by=o.y+o.h-24; add(st,'rect',{x:0,y:o.y,width:W,height:o.h,rx:SOLID?10:0},'fill:'+tc(tn,'tint')+';fill-opacity:.55');
+      add(st,'rect',{x:0,y:o.y,width:lw,height:o.h,rx:SOLID?10:0},'fill:'+tc(tn)); gloss(st,'rect',{x:0,y:o.y,width:lw,height:o.h,rx:10},1.1); lab(st,lw/2,o.y+o.h/2,lw-20,[[t_.name,'h2']],{cls:'on',fit:[lw-6,o.h-6]});
+      add(st,'path',{d:`M${x0-10} ${by} L${x1+10} ${by}`},'stroke:'+tc(tn,'line')+';stroke-width:5;stroke-linecap:round;fill:none');
+      t_.nodes.forEach(n=>{ const xa=sx(n.at), xb=n.to!=null?sx(n.to):xa, w=Math.max(n._w||240,270), al=n._align||'center', mid=(xa+xb)/2, lane=n._lane||0;
+        let cx_=al==='start'?xa-14:(al==='end'?xb+14-w:mid-w/2); cx_=Math.max(lw+10,Math.min(W-w-2,cx_)); const cy_=by-22-o.ch-lane*o.laneH;
+        add(st,'path',{d:`M${mid} ${by} L${mid} ${cy_+o.ch}`},'stroke:'+tc(tn)+';stroke-width:2.5;fill:none');
+        if(n.to!=null) add(st,'path',{d:`M${xa} ${by} L${xb} ${by}`},'stroke:'+tc(tn)+';stroke-width:13;stroke-linecap:round;fill:none'); else { add(st,'circle',{cx:xa,cy:by,r:11},'fill:'+tc(tn)+';stroke:#fff;stroke-width:3'); }
+        card(st,cx_,cy_,w,o.ch,tn,{white:1}); lab(st,cx_+14,cy_+o.ch/2,w-28,[[n.year,'bb',tc(tn)],[n.label,'b']],{anchor:'l',align:'l',fit:[w-4,o.ch]}); }); });
+  }
+
+  // ───────── pipe-mapping ─────────  segments[], rows[{lane,blocks[{label,_inlet,_from,_to,_node,_lw,_lane}],nodes[],note}]
+  function pipeMappingX(d){
+    const SG=d.segments, ns=SG.length, lw=178, px0=lw+22, pw=540, gut=92, nx=px0+pw+gut, nw=W-nx, sw=pw/ns, top=58, R=[]; let y=top;
+    d.rows.forEach(r=>{ const nh=r.nodes.map(t_=>Math.max(60,measure(nw-36,[[t_,'b']],{align:'l'}).h+24)), nodesH=sum(nh)+10*(nh.length-1), lanes=Math.max(0,...r.blocks.map(b=>b._lane||0))+1;
+      const lh=Math.max(...r.blocks.map(b=>measure(b._lw||210,[[b.label,'sb']]).h))+10, noteH=r.note?measure(pw+gut-30,[[r.note,'s']],{align:'l'}).h+10:0, h=Math.max(nodesH,34+lanes*lh+12+noteH)+28; R.push({r,y,h,nh,lh,noteH}); y+=h+10; });
+    const st=stage(y);
+    SG.forEach((s,j)=>{ pillBox(st,px0+j*sw+4,6,sw-8,42,'sub',false); lab(st,px0+(j+0.5)*sw,27,0,[[s,'bb',tc('sub')]]); });
+    R.forEach((o,ri)=>{ const r=o.r, py=o.y+14; add(st,'rect',{x:0,y:o.y,width:W,height:o.h,rx:SOLID?10:0},'fill:'+(ri%2?'var(--card-fill)':'var(--fill-faint)')+';stroke:var(--line-soft);stroke-width:1.5');
+      add(st,'rect',{x:0,y:o.y,width:lw,height:o.h,rx:SOLID?10:0},'fill:'+tc('main')); gloss(st,'rect',{x:0,y:o.y,width:lw,height:o.h,rx:10},1.1); lab(st,lw/2,o.y+o.h/2,lw-20,[[r.lane,'h2']],{cls:'on',fit:[lw-6,o.h-6]});
+      add(st,'rect',{x:px0,y:py,width:pw,height:26,rx:SOLID?13:0},'fill:'+tc('mute','tint')+';stroke:'+tc('mute','line')+';stroke-width:1.5');
+      for(let j=1;j<ns;j++) add(st,'path',{d:`M${px0+j*sw} ${py+3} L${px0+j*sw} ${py+23}`},'stroke:'+tc('mute','line')+';stroke-width:2;fill:none');
+      let ny=o.y+(o.h-(sum(o.nh)+10*(o.nh.length-1)))/2; const nyc=[]; r.nodes.forEach((t_,k)=>{ const h=o.nh[k]; card(st,nx,ny,nw,h,'go',{}); add(st,'rect',{x:nx,y:ny+8,width:7,height:h-16,rx:3},'fill:'+tc('go'));
+        lab(st,nx+22,ny+h/2,nw-36,[[t_,'b']],{anchor:'l',align:'l',fit:[nw-6,h]}); nyc.push(ny+h/2); ny+=h+10; });
+      r.blocks.forEach(b=>{ const xa=b._inlet?px0:px0+(b._from||0)*sw, xb=b._inlet?px0:px0+(b._to||0)*sw, mx=(xa+xb)/2, w=b._lw||210, ly=py+40+(b._lane||0)*o.lh;
+        if(b._inlet) add(st,'circle',{cx:px0,cy:py+13,r:17},'fill:'+tc('stop')+';stroke:#fff;stroke-width:3'); else add(st,'rect',{x:xa+3,y:py,width:xb-xa-6,height:26,rx:SOLID?13:0},'fill:'+tc('stop'));
+        const lx=Math.max(px0-10,Math.min(px0+pw+gut-24-w,mx-w/2)); add(st,'path',{d:`M${mx} ${py+28} L${mx} ${ly+4}`},'stroke:'+tc('stop')+';stroke-width:2.5;fill:none');
+        const e=lab(st,lx,ly+6,w,[[b.label,'sb',tc('stop')]],{anchor:'tl',cls:'halo'}); void e;
+        if(b._node!=null&&nyc[b._node]!=null){ const sy_=ly+6+(o.lh-10)/2, sxx=Math.min(px0+pw+gut-22,lx+w+6); add(st,'path',{d:`M${sxx} ${sy_} C ${(sxx+nx)/2+10} ${sy_}, ${(sxx+nx)/2-10} ${nyc[b._node]}, ${nx-14} ${nyc[b._node]}`},'stroke:'+tc('go')+';stroke-width:2.5;stroke-dasharray:3 6;stroke-linecap:round;fill:none');
+          add(st,'polygon',{points:`${nx-14},${nyc[b._node]-7} ${nx-2},${nyc[b._node]} ${nx-14},${nyc[b._node]+7}`},'fill:'+tc('go')); } });
+      if(r.note) lab(st,px0,o.y+o.h-12,pw+gut-30,[[r.note,'s']],{anchor:'bl',align:'l'}); });
+  }
+})();
+</script>
+</body>
+</html>

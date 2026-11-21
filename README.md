@@ -8,6 +8,37 @@
 
 ---
 
+## v2.2 — 디자인 보고서풍 구조도와 데이터 그래프
+
+![디자인 보고서풍 구조도](examples/preview/_v22_viz_shapes.png)
+
+상자 도식만으로는 "유명 리포트의 그래프·구조도" 같은 그림이 나오지 않는다. 해외 보고서와 그래프 작성 지침서 29건(WEF·Stanford AI Index·OECD·IEA·세계은행·IPCC·EU Draghi 보고서·FT Visual Vocabulary 등)에서 그림 140장을 잘라 같은 잣대로 쟀다.
+
+| | 흰 바탕 | 색 면적 | 진한 면 |
+|---|---|---|---|
+| 해외 그래프 91장 | 81% | 6.5% | 0.1% |
+| 해외 구조도 49장 | 66% | 12% | 1.7% |
+
+그래프는 **강조색 하나와 회색**, **범례 대신 선 끝·막대 끝 이름표**, **옅은 가로 눈금선**, **값 순서와 기준선**으로 그린다. 구조도는 모양이 뜻을 나른다 — 줄어드는 것은 깔때기, 커지는 것은 원, 도는 것은 고리.
+
+- **구조도 6종** `funnel-stack` · `growing-circles` · `circle-chain` · `ring-core` · `ribbon-list` · `stat-strip`
+- **그래프 9종** `bar-highlight` · `bar-line` · `line-highlight` · `slope` · `dumbbell` · `range-bar` · `bubble-compare` · `small-multiples` · `stacked-share`
+- **유량·연결 3종** (v2.2.1) `sankey` 유량도 · `link-map` 연결도 · `network` 연결망
+- **기존 도식 형태 14종의 새 디자인** (v2.3) — 순환·깔때기·벤·2×2·피라미드·동심원·허브·피시본·계단·전후 비교·폭포·빙산·스윔레인·로직 트리를 같은 사양 그대로 새 디자인으로 그린다. 지난 모양은 사양에 `"classic": true`
+- **템플릿 11종의 새 디자인** (v2.4) — 간트·다중 트랙 연표·단계 프로세스·판정 흐름·조직도·계층 구성도·2단 스택·논증 도해·비교표·히트맵·병목 매핑도 같은 방식으로 옮겼다
+- **프리셋 `design-report`** — 청록·남색 두 축에 주황 한 점. 이 프리셋에서만 부드러운 그라데이션과 타원 테가 켜진다. `house` 로 그리면 같은 사양이 평면으로 나온다
+
+![데이터 그래프](examples/preview/_v22_viz_charts.png)
+
+![유량·연결](examples/preview/_v221_viz_flow.png)
+
+```bash
+python3 scripts/render_figure.py examples/viz-funnel-stack.json -o out.png --verify
+python3 scripts/render_figure.py examples/viz-slope.json --preset house -o out.png --verify
+```
+
+`--verify` 는 글자끼리 겹침·그림 밖 이탈·도형보다 큰 글자를 실패로 잡는다. 근거: [references/benchmark-intl-2026.md](references/benchmark-intl-2026.md) · 사양: [references/viz-spec.md](references/viz-spec.md). 예시 수치는 모두 가상이다.
+
 ## v2.0 — 조립 도식 `board`
 
 ![조립 도식 예 — 운영 흐름](examples/preview/board-ops-flow.png)
@@ -20,7 +51,7 @@ v1.x 템플릿은 같은 크기 상자를 격자로 늘어놓았다. 잘 그린 
 | v1.3 `report-classic` 산출물 | 93% | 1.7% |
 | v2.0 `board` 레시피 | 40~63% | 14~29% |
 
-잘 그린 도식은 ① 진한 머리띠 + 같은 색 옅은 몸의 **두 층 채움**, ② 층위를 박는 **왼쪽 이름표 열**, ③ 내용에 맞춰 **바뀌는 격자**, ④ **뜻을 나르는 색**, ⑤ 상자 안의 **2~3층 구조**를 쓴다. `board`는 이 문법을 부품(카드·띠·알약·쉐브론 단계·칩·판단 마름모·시간 띠·미니 매트릭스·지표 모듈·선 아이콘)으로 만들고, 행·열·묶음에 넣어 화살표를 잇는다. 레시피 10종(비전 체계도·추진체계도·번호 탭 절차·연차 로드맵·전환·후보 선정·병렬 검토·분석틀·계층 구성·운영 흐름)을 복사해 고치면 된다. `--verify`가 글자 넘침·화살표의 상자 관통·작은 글자·휑함까지 잡는다.
+잘 그린 도식은 ① 진한 머리띠 + 같은 색 옅은 몸의 **두 층 채움**, ② 층위를 박는 **왼쪽 이름표 열**, ③ 내용에 맞춰 **바뀌는 격자**, ④ **뜻을 나르는 색**, ⑤ 상자 안의 **2~3층 구조**를 쓴다. `board`는 이 문법을 부품(카드·띠·알약·쉐브론 단계·칩·판단 마름모·시간 띠·미니 매트릭스·지표 모듈·선 아이콘)으로 만들고, 행·열·묶음에 넣어 화살표를 잇는다. 레시피 11종(비전 체계도·추진체계도·번호 탭 절차·연차 로드맵·전환·후보 선정·병렬 검토·분석틀·계층 구성·운영 흐름·논리 흐름도)을 복사해 고치면 된다. `--verify`가 글자 넘침·화살표의 상자 관통·작은 글자·휑함까지 잡는다. v2.1부터는 무거움(진한 칠 면적 12% 초과)과 칸에 비해 긴 글(항목 3줄 이상 꺾임)도 경고한다 — 카드는 흰 몸과 한 줄짜리 얇은 머리띠, 진하게 칠하는 곳은 제목이 말하는 한 곳.
 
 | | |
 |---|---|
@@ -266,7 +297,7 @@ bash scripts/selftest.sh
 
 - **본문 표 조판** — 표는 문서 편집기가 그린다. 이 저장소는 도식 이미지 전용이다
 - **사진풍 일러스트** — 이미지 모델 경로도 도식·인포그래픽까지만 ([references/image-prompt-spec.md](references/image-prompt-spec.md))
-- **범용 차트 라이브러리 대체** — 산점도·회귀선이 필요하면 matplotlib을 쓴다
+- **범용 차트 라이브러리 대체** — 산점도·회귀선이 필요하면 matplotlib을 쓴다. v2.2 의 그래프 9종은 보고서에 넣는 정해진 형태(강조 막대·기울기·아령 등)만 그린다
 
 ## 문서
 
@@ -276,6 +307,8 @@ bash scripts/selftest.sh
 | [템플릿·도식 형태 스키마](references/template-schemas.md) | 25종 + 자유 도식 필드 명세 |
 | [문서 유형 매핑](references/doc-type-map.md) | 어떤 문서에 무엇을 몇 장 |
 | [프리셋 사양](references/preset-spec.md) | 토큰 57개(형태 토큰 19개 포함), 새 프리셋 만들기 |
+| [viz 사양](references/viz-spec.md) | 디자인 보고서풍 구조도 6종 · 데이터 그래프 9종 필드 명세 (v2.2) |
+| [해외 보고서 벤치마크](references/benchmark-intl-2026.md) | 해외 보고서·지침서 29건, 그림 140장 측정값과 규칙 (v2.2) |
 | [이미지 모델 경로](references/image-prompt-spec.md) | 프롬프트 설계 원리, 모델 선택, 점검 순서 |
 | [설계 기록](docs/design.md) | 왜 이렇게 만들었나 — 형태 토큰·자유 도식·이미지 모델 경로 |
 | [설치·확장](docs/) | 템플릿 추가하기 |

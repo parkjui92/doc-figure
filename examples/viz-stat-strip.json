@@ -1,0 +1,36 @@
+{
+ "template": "stat-strip",
+ "preset": "design-report",
+ "title": "응답 기업 열 곳 중 여덟 곳이 자료 연계를 필요로 한다",
+ "items": [
+  {
+   "value": "84",
+   "unit": "%",
+   "share": 0.84,
+   "label": "자료 연계가 필요하다",
+   "note": "응답 기업 1,200개 기준",
+   "highlight": true
+  },
+  {
+   "value": "46",
+   "unit": "%",
+   "share": 0.46,
+   "label": "연계 절차를 알고 있다",
+   "note": "소기업은 31%"
+  },
+  {
+   "value": "12",
+   "unit": "%",
+   "share": 0.12,
+   "label": "실제로 연계해 활용했다",
+   "note": "최근 3년 기준"
+  },
+  {
+   "value": "5.2",
+   "unit": "개월",
+   "label": "연계에 걸린 기간",
+   "note": "신청에서 제공까지 평균"
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

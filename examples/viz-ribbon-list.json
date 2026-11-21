@@ -1,0 +1,19 @@
+{
+ "template": "ribbon-list",
+ "preset": "design-report",
+ "title": "지원 대상 기술의 세 조건",
+ "numbered": true,
+ "items": [
+  {
+   "text": "연구 성과가 이미 축적되어 있고"
+  },
+  {
+   "text": "최근 5년간 활용 실적이 적으며"
+  },
+  {
+   "text": "여건이 갖추어지면 수요 증가가 예상되는 기술",
+   "tone": "go"
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

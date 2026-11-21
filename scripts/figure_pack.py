@@ -32,6 +32,14 @@ FORM_KO = {
     "org-chart": "추진체계도", "concept-argument": "논증 도해", "comparison-matrix": "비교표", "matrix-heatmap": "판정 히트맵",
     "pipe-mapping": "병목 매핑", "freeform": "자유 도식", "board": "조립 도식",
 }
+# v2.2 — 디자인 보고서풍 구조도 5종 + 데이터 그래프 9종 (viz)
+FORM_KO.update({
+    "funnel-stack": "쌓은 깔때기", "growing-circles": "커지는 원", "circle-chain": "겹치는 원 사슬", "ring-core": "순환 고리와 핵심어",
+    "ribbon-list": "꼬리표 목록", "stat-strip": "큰 숫자 묶음", "bar-highlight": "강조 막대", "bar-line": "막대+선 결합", "line-highlight": "강조 선",
+    "slope": "기울기 그래프", "dumbbell": "아령 그래프", "range-bar": "범위 막대", "bubble-compare": "비례 원",
+    "small-multiples": "작은 그래프 묶음", "stacked-share": "구성비 누적 막대", "viz": "디자인 보고서풍 도식·그래프",
+    "sankey": "유량도", "link-map": "연결도(열 사이 연결)", "network": "연결망",
+})
 
 
 def b64(path):
@@ -48,7 +56,7 @@ def main():
     ap = argparse.ArgumentParser(description="doc-figure 프롬프트+도식 묶음")
     ap.add_argument("specs", nargs="+")
     ap.add_argument("-o", "--out", default="figure_pack")
-    ap.add_argument("--preset", help="모든 후보에 같은 프리셋 (기본: 각 spec 의 preset → house)")
+    ap.add_argument("--preset", help="모든 후보에 같은 프리셋 (기본: 각 spec 의 preset → house, viz 계열은 design-report)")
     ap.add_argument("--gpt", action="store_true", help="이미지 모델 생성본도 만든다 (키 필요, 후보당 1회 과금)")
     ap.add_argument("--from-render", action="store_true", help="--gpt 일 때 코드 렌더를 참조로")
     ap.add_argument("--title", help="묶음 제목 (기본: 첫 spec 의 intent.message)")
@@ -60,8 +68,8 @@ def main():
     for i, sp in enumerate(a.specs, 1):
         spec = json.load(open(sp, encoding="utf-8"))
         rs = RF.resolve_form(spec)
-        form = rs.get("form") or rs.get("template")
-        preset = a.preset or spec.get("preset") or RF.DEFAULT_PRESET
+        form = rs.get("form") or rs.get("viz") or rs.get("template")
+        preset = a.preset or spec.get("preset") or (RF.VIZ_DEFAULT_PRESET if RF.resolve_form(spec).get("template") == "viz" else RF.DEFAULT_PRESET)
         name = "%02d_%s" % (i, form)
         png = os.path.join(a.out, name + ".png")
         code, log = run([sys.executable, os.path.join(HERE, "render_figure.py"), sp, "--preset", preset, "-o", png, "--verify", "--scale", a.scale])

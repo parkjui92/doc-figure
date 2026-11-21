@@ -325,3 +325,15 @@
 - 밑줄 키(`_x` `_y` `_lane` `_col` `_focus`)는 배치 지시라 글자 대조에서 빠진다
 - 폭포 차트는 증감이 총액의 절반보다 작으면 **세로축 하단을 자동 생략**하고 ≈ 표시와 주석을 단다
 - 렌더러가 멈추면 그림 안에 `[forms 오류] …` 가 찍히고 `--verify` 가 실패한다
+
+## 디자인 보고서풍 구조도 6종 · 데이터 그래프 9종 (v2.2)
+
+`funnel-stack` · `growing-circles` · `circle-chain` · `ring-core` · `ribbon-list` · `stat-strip` · `bar-highlight` · `bar-line` · `line-highlight` · `slope` · `dumbbell` · `range-bar` · `bubble-compare` · `small-multiples` · `stacked-share` 의 필드 명세는 [viz-spec.md](viz-spec.md)에 따로 둔다. 예시는 `examples/viz-*.json`.
+
+## 도식 형태 14종의 새 디자인과 지난 모양 (v2.3)
+
+위 도식 형태 14종의 사양은 그대로다. v2.3부터 같은 사양이 새 디자인(`templates/viz.html`)으로 그려지고, 프리셋을 주지 않으면 `design-report` 로 나온다. 지난 모양(`templates/forms.html`)이 필요하면 사양 최상위에 `"classic": true` 를 준다. 달라진 점은 [viz-spec.md](viz-spec.md) 「기존 도식 형태 14종의 새 디자인」.
+
+## 템플릿 11종의 새 디자인과 지난 모양 (v2.4)
+
+`flow-process` · `org-chart` · `structure-block` · `layer-stack` · `concept-argument` · `comparison-matrix` · `matrix-heatmap` · `decision-flow` · `timeline-gantt` · `timeline-tracks` · `pipe-mapping` 의 사양도 그대로다. v2.4부터 같은 사양이 새 디자인(`templates/viz.html`)으로 그려지고, 지난 모양(각 템플릿 html)은 사양 최상위에 `"classic": true` 를 준다. 좌표를 직접 주는 `layout` 값(열 폭 등)은 새 디자인에서 쓰지 않는다 — 폭은 내용에 맞춰 잡는다.

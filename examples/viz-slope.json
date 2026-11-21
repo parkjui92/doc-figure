@@ -1,0 +1,38 @@
+{
+ "template": "slope",
+ "preset": "design-report",
+ "title": "다섯 분야 가운데 데이터 분야만 활용 지수가 크게 상승하였다",
+ "unit": "활용 지수, 점",
+ "from_label": "2020년",
+ "to_label": "2025년",
+ "items": [
+  {
+   "label": "데이터",
+   "from": 42,
+   "to": 78,
+   "highlight": true,
+   "tone": "wait"
+  },
+  {
+   "label": "통신",
+   "from": 71,
+   "to": 74
+  },
+  {
+   "label": "반도체",
+   "from": 66,
+   "to": 69
+  },
+  {
+   "label": "바이오",
+   "from": 58,
+   "to": 55
+  },
+  {
+   "label": "에너지",
+   "from": 49,
+   "to": 51
+  }
+ ],
+ "source": "가상 예시(수치는 설명용)"
+}

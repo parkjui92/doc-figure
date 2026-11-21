@@ -61,7 +61,8 @@
               }
             ],
             "gap": 14
-          }
+          },
+          "label_style": "soft"
         }
       ]
     },
@@ -70,7 +71,8 @@
         {
           "pill": "추진 전략",
           "shape": "square",
-          "w": 170
+          "w": 170,
+          "style": "soft"
         },
         {
           "head": "전략 1 · 수요 진단",
@@ -80,7 +82,8 @@
             "자치구별 시범 진단",
             "진단 결과 공개 체계"
           ],
-          "tone": "main"
+          "tone": "main",
+          "head_style": "soft"
         },
         {
           "head": "전략 2 · 시설 확충",
@@ -90,7 +93,8 @@
             "현장 수요 상시 수렴",
             "소규모 시설 설치 지원"
           ],
-          "tone": "sub"
+          "tone": "sub",
+          "head_style": "soft"
         },
         {
           "head": "전략 3 · 공유 확대",
@@ -100,7 +104,8 @@
             "공공시설 시간대 공유",
             "통합 예약 채널 운영"
           ],
-          "tone": "go"
+          "tone": "go",
+          "head_style": "soft"
         }
       ],
       "gap": 14
@@ -111,7 +116,8 @@
           "pill": "기반",
           "shape": "square",
           "tone": "mute",
-          "w": 170
+          "w": 170,
+          "style": "soft"
         },
         {
           "chips": [
