@@ -40,6 +40,11 @@ FORM_KO.update({
     "small-multiples": "작은 그래프 묶음", "stacked-share": "구성비 누적 막대", "viz": "디자인 보고서풍 도식·그래프",
     "sankey": "유량도", "link-map": "연결도(열 사이 연결)", "network": "연결망",
 })
+# v2.5 — 입체 층 도식 6종 (viz)
+FORM_KO.update({
+    "iso-stack": "입체 층 쌓기", "iso-pillars": "입체 판 위 기둥", "iso-compare": "입체 두 모델 비교",
+    "iso-steps": "입체 계단", "iso-bars": "입체 기둥 높이", "iso-pyramid": "입체 피라미드 층",
+})
 
 
 def b64(path):

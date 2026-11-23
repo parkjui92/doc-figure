@@ -46,6 +46,8 @@ VIZ_CHARTS = ["bar-highlight", "bar-line", "line-highlight", "slope", "dumbbell"
               "bubble-compare", "small-multiples", "stacked-share",
               "sankey", "network"]   # v2.3 — 유량도·연결망 (link-map 연결도는 구조도 쪽)
 VIZ = VIZ_SHAPES + VIZ_CHARTS
+# v2.5 — 입체 층 도식 6종 (비스듬한 투영의 판·기둥·계단). templates/viz.html 이 그린다 (references/viz-spec.md 「입체 층 도식」)
+ISO = ["iso-stack", "iso-pillars", "iso-compare", "iso-steps", "iso-bars", "iso-pyramid"]
 # v2.4 — 새 디자인으로 옮긴 기존 템플릿 11종 (board·freeform 은 옮기지 않는다)
 TPL_X = ["flow-process", "org-chart", "structure-block", "layer-stack", "concept-argument", "comparison-matrix",
          "matrix-heatmap", "decision-flow", "timeline-gantt", "timeline-tracks", "pipe-mapping"]
@@ -73,7 +75,7 @@ def resolve_form(spec):
         return dict(spec, viz=t, template="viz")
     if t in FORMS:
         spec = dict(spec, form=t, template="forms")
-    if t in VIZ:
+    if t in VIZ or t in ISO:
         spec = dict(spec, viz=t, template="viz")
     return spec
 
@@ -372,7 +374,9 @@ NON_TEXT_KEYS = {"template", "preset", "icon", "dept_icon", "highlight",
                  "via", "shape", "header", "indent", "indent_r", "lane_r", "lane_l", "offset", "label_side", "label_style", "pill_tone", "body_gap", "head_sub_in", "print_cm", "body_pt", "cols", "head_align", "justify", "label_at", "font_scale", "w", "h",
                  # viz — 형태·배치 키
                  "viz", "orient", "kind", "palette", "sort", "highlight_tone", "tone_a", "tone_b", "a_tone", "b_tone",
-                 "group", "key", "center", "classic"}
+                 "group", "key", "center", "classic",
+                 # iso (v2.5) — 입체 층 도식의 모양 키
+                 "look", "link_dir"}
 
 
 # 마크업이 든 키 — 태그를 걷어낸 글자 조각을 대조한다 (freeform)
@@ -450,6 +454,7 @@ def main():
         print("도식 형태 (%d, forms): %s" % (len(FORMS), ", ".join(FORMS)))
         print("디자인 보고서풍 구조도 (%d, viz): %s" % (len(VIZ_SHAPES), ", ".join(VIZ_SHAPES)))
         print("데이터 그래프 (%d, viz): %s" % (len(VIZ_CHARTS), ", ".join(VIZ_CHARTS)))
+        print("입체 층 도식 (%d, viz): %s" % (len(ISO), ", ".join(ISO)))
         print("프리셋 (%d): %s" % (len(available(PRESETS, ".css")),
                                    ", ".join(available(PRESETS, ".css"))))
         return
@@ -516,6 +521,10 @@ def main():
                 sys.exit(4)
             if template == "viz":
                 print("[verify] ✓ 배치 점검 통과 (글자 겹침·그림 밖 이탈·도형보다 큰 글자 0)")
+            if spec.get("viz") in ISO:
+                print("[verify] ✓ 입체 점검 통과 (칩이 판 밖·앞 도형에 가려짐·이름표가 도형을 덮음·도형이 그림 밖 0)")
+            if spec.get("viz") == "iso-bars":
+                print("[verify] ⚠ 주의: 입체 막대는 높이를 실제보다 크거나 작게 읽히게 한다 — 값 이름표를 지우지 말고, 정밀 비교·순위는 bar-highlight 로 그릴 것")
             if template == "board":
                 print("[verify] ✓ 배치 점검 통과 (글자 넘침·화살표 관통·작은 글자 0)")
                 warns = layout_warnings(dom)

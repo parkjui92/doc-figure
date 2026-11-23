@@ -1,0 +1,29 @@
+{
+ "template": "iso-bars",
+ "unit": "인구 천 명당 연구원 수, 명",
+ "items": [
+  {
+   "label": "충청권",
+   "value": 14.2,
+   "highlight": true
+  },
+  {
+   "label": "수도권",
+   "value": 11.8
+  },
+  {
+   "label": "동남권",
+   "value": 7.4
+  },
+  {
+   "label": "대경권",
+   "value": 6.9
+  },
+  {
+   "label": "호남권",
+   "value": 5.1
+  }
+ ],
+ "footnote": "입체 막대는 높이를 실제와 다르게 읽히게 할 수 있어 값을 함께 적음",
+ "source": "가상 예시(수치는 설명용)"
+}

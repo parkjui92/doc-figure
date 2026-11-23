@@ -216,6 +216,34 @@ python3 scripts/render_figure.py examples/viz-slope.json --preset house -o out.p
 - 지난 모양: 사양에 `"classic": true`
 - `waterfall` 은 증감 합계가 `end.value` 와 다르면 그리지 않고 멈춘다(종전과 같음)
 
+## 입체 층 도식 6종 (v2.5)
+
+필자가 '보다 입체적으로'를 요청해 다시 그린 층 쌓기 시안(2026-11-23, 사용자 승인)을 형태로 옮겼다. 평면 상자로는 '아래가 위를 받친다·층이 쌓인다·단계가 오른다'는 느낌이 약할 때 쓴다. **입체는 관계를 나르는 모양일 때만** 쓴다 — 쌓임·받침·상승이 없는 내용을 입체로 그리지 않는다.
+
+투영은 하나로 고정한다: 바닥 x 는 오른쪽 아래(가로 0.92 · 세로 0.30), y 는 왼쪽 아래, 높이는 위. 윗면은 빛 받은 면(밝게), 앞 두 면은 그늘(검정 덮개 20%·36%), 윗면 테두리는 흰 선. `design-report` 에서는 윗면에 옅은 그라데이션이 더해지고, `house` 등 평면 프리셋에서는 그라데이션 없이 같은 투영으로 나온다.
+
+| 형태 | 보이려는 것 | 주요 키 |
+|---|---|---|
+| `iso-stack` 층 쌓기 | 기반층 → 중간층 → 상위층이 차례로 받친다 | `layers[{title,desc,chips[],tone,look,highlight}]` 위→아래 · `link`(층 사이 화살표 글, 예: "뒷받침") · `link_dir` up·down · `span`(판 화면 폭) · `thick` · `gap` · `label_w` |
+| `iso-pillars` 단층 판 위 기둥 | 한 판 위에 받침 조건 여러 개가 선다 | `base{title,desc,tone,look}` · `pillars[{label,tone,highlight,h}]`(`h` 는 높이 배수) · `rows_title` · `rows[{before,after}]`(조건의 변화 줄) · `pillar_tone` · `pillar_size` · `pillar_h` · `depth` |
+| `iso-compare` 두 모델 비교 | 단층 모델과 다층 모델을 나란히 견준다 | `left`·`right` 각각 `{title,sub,short,tone}` + `iso-pillars` 사양(`pillars`) 또는 `iso-stack` 사양(`layers`) · `shift`(가운데 진한 띠 한 문장) · `rows[{label,left,right}]`(대조표) · `split`(왼쪽 몫, 기본 0.34) |
+| `iso-steps` 입체 계단 | 단계가 앞 단계 위에서 오른다 | `steps[{tag,title,desc,tone,highlight}]` 왼쪽→오른쪽 · `goal`(맨 윗단 칩) · `step_w` · `rise` · `base_h` |
+| `iso-bars` 기둥 높이 비교 | 몇 항목의 크기 차이를 입체로 보인다 | `items[{label,value,highlight,tone}]` · `unit` · `decimals` · `max_h` · `bar_w` · `highlight_tone` |
+| `iso-pyramid` 입체 피라미드 층 | 위로 갈수록 좁아지는 층(성숙 단계·위계) | `levels[{title,desc,tone,highlight}]` 위→아래 · `thick` · `base_size` · `top_ratio`(맨 위 판 / 맨 아래 판, 기본 0.36) |
+
+`look`: `dark`(진한 윗면, 기본) · `line`(중간) · `tint`(옅은 판). `highlight: true` 는 주황(`wait`).
+
+배치 규율 (시안을 다시 그리며 겪은 문제에서 나왔다):
+
+1. **판 위 칩은 화면 가로 한 줄** — 투영 방향으로 비스듬히 늘어놓으면 서로 겹친다. 칩 줄 위·아래 끝은 판의 비스듬한 변을 따라 옆으로 밀리므로, 판 폭은 칩 폭 합계에 그 몫(칩 높이 × 0.92/0.30 ≈ 123px)을 더해 잡는다. 칩이 4개를 넘거나 글이 길면 칩 글을 줄인다
+2. **층 이름은 오른쪽 열** — 판 오른쪽 끝에서 띄워 둔다. 층 사이 관계는 이름 열 사이의 주황 화살표와 한 낱말(`link`)로
+3. **그림 폭 안에 배치** — 판·이름표가 그림 밖으로 나가지 않게 판 폭을 남는 폭에서 정한다. 넘치면 점검이 실패로 잡는다
+4. **기둥 이름표는 기둥 위** — 기둥이 오른쪽 아래로 내려가며 놓이므로 이웃 이름표가 겹치지 않을 만큼 간격을 벌린다
+5. **그림 위 제목 줄을 넣지 않는다** — 입체 도식의 예시는 `title` 없이 그린다(사용자 지시 2026-11-23 "그림 위에 설명글 길게 한 줄 있는 거 다 없애라"). 그림 번호·제목은 문서 캡션이 맡는다. `title` 을 주지 않으면 왼쪽 위 짧은 색 막대도 그리지 않는다
+6. **입체 막대(`iso-bars`)는 높이를 실제와 다르게 읽히게 한다** — 값은 늘 글자로 적고(렌더러가 지우지 못하게 그린다), 0에서 시작하며(음수는 그리지 않고 멈춘다), 순위·정밀 비교는 `bar-highlight` 로 그린다. 문서에 넣을 때 `footnote` 에 그 뜻을 적는다
+
+`--verify` 가 입체 형태에서 더 보는 것: 칩이 판 윗면 밖으로 나감 · 칩이 앞(위) 판에 가려짐 · 바깥 이름표가 판·기둥을 덮음 · 판이 그림 밖으로 나감 → 실패(exit 4). 인상 점검의 '진한 면' 경고는 남색 판이 클 때 나온다(승인 시안 전체는 흰 바탕 64% · 색 면적 20% · 진한 면 10%) — 판을 줄이거나 맨 아래 판을 `look: "line"` 으로.
+
 ## `--verify` 가 보는 것
 
 - spec 의 모든 글자가 그림에 있는가(가로축 `x` 눈금은 칸이 좁으면 건너뛰어 적으므로 대조에서 뺀다)
@@ -227,4 +255,4 @@ python3 scripts/render_figure.py examples/viz-slope.json --preset house -o out.p
 
 ## 그리지 않는 것
 
-등각 투영 아이콘·건물 그림, 지도, 산점도, 사진 합성은 코드로 그리지 않는다(유량도·연결도·연결망은 v2.2.1부터 그린다). 필요하면 이미지 모델 경로(`scripts/gen_image.py`, [image-prompt-spec.md](image-prompt-spec.md))로 가고, 글자·수치는 코드 렌더와 대조한다.
+등각 투영 아이콘·건물 그림, 지도, 산점도, 사진 합성은 코드로 그리지 않는다(유량도·연결도·연결망은 v2.2.1부터 그린다. 판·기둥·계단을 비스듬히 쌓는 입체 층 도식 6종은 v2.5부터 그린다 — 사물·건물을 입체로 그리는 그림은 여전히 그리지 않는다). 필요하면 이미지 모델 경로(`scripts/gen_image.py`, [image-prompt-spec.md](image-prompt-spec.md))로 가고, 글자·수치는 코드 렌더와 대조한다.

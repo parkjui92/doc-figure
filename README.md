@@ -8,6 +8,17 @@
 
 ---
 
+## v2.5 — 입체 층 도식 6종
+
+![입체 층 도식](examples/preview/_v25_iso.png)
+
+'보다 입체적으로' 다시 그린 층 쌓기 시안을 형태로 옮겼다. 판·기둥·계단을 비스듬한 투영으로 쌓아 '아래가 위를 받친다·층이 쌓인다·단계가 오른다'를 보인다 — `iso-stack` 층 쌓기 · `iso-pillars` 판 위 기둥 · `iso-compare` 두 모델 비교 · `iso-steps` 입체 계단 · `iso-bars` 기둥 높이 비교 · `iso-pyramid` 입체 피라미드 층. 판 위 칩은 화면 가로 한 줄, 층 이름은 오른쪽 열, 그림 위 제목 줄은 넣지 않는다(문서 캡션이 맡는다). `--verify` 는 칩이 판 밖으로 나간 것·앞 판에 가려진 것·이름표가 도형을 덮은 것·판이 그림 밖으로 나간 것을 실패로 잡는다. 입체 막대는 높이를 실제와 다르게 읽히게 하므로 값을 늘 적고, 순위·정밀 비교는 `bar-highlight` 로 그린다.
+
+```bash
+python3 scripts/render_figure.py examples/iso-stack.json -o out.png --verify
+python3 scripts/render_figure.py examples/iso-compare.json --preset house -o out.png --verify
+```
+
 ## v2.2 — 디자인 보고서풍 구조도와 데이터 그래프
 
 ![디자인 보고서풍 구조도](examples/preview/_v22_viz_shapes.png)

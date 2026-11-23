@@ -126,6 +126,8 @@
 }
 ```
 
+- (2026-11-23 추가) 층에 `tone`, 상자에 `tone`을 주면 그 색으로 그린다(상자 `tone`이 없으면 층 색). 한 층 안에서 기존·제안처럼 상자 색을 가를 때 쓴다(예: 층은 모두 `main`, 기존 상자 `mute`, 제안 상자 `go`). 맨 위 `legend:[{label,tone}]`를 주면 그림 아래에 범례를 단다. 새 디자인(viz.html)에만 해당하고 `"classic": true`에서는 쓰지 않는다
+
 ### 6. `layer-stack` — 상·하 2단 스택
 
 두 층의 관계(제도↔실행, 정책↔현장 등)와 그 아래 추진 순서를 한 장에 담는다.
@@ -320,6 +322,8 @@
 | `waterfall` | `start{label, value}` · `steps[{label, value(±)}]` · `end{label, value?}` · `unit?` — `end.value`를 적으면 `start+Σsteps`와 맞아야 한다(틀리면 렌더 실패) |
 | `iceberg` | `above{title, items[]}` · `below{title, items[]}` · `note?` |
 | `swimlane` | `lanes[]` · `phases[]?` · `steps[{text, _lane, _col, highlight?}]` — 배열 순서대로 화살표 |
+
+- (2026-11-23 추가, 새 디자인만) `swimlane` 단계에 `tone`(카드 테·글자 색, 들어오는 화살표도 그 색 — 기존 `mute`·제안 `go`처럼 가를 때), `next: false`(다음 단계로 가는 화살표를 끊어 흐름을 여러 갈래로), 맨 위 `legend:[{label,tone}]`. 화살표는 오른쪽이나 위아래로만 곧게 이어지므로 다음 단계는 같은 열 또는 오른쪽 열에 둔다
 | `logic-tree` | `root{title, desc}` · `children[{title, desc?, children[{title}]}]` |
 
 - 밑줄 키(`_x` `_y` `_lane` `_col` `_focus`)는 배치 지시라 글자 대조에서 빠진다
@@ -337,3 +341,7 @@
 ## 템플릿 11종의 새 디자인과 지난 모양 (v2.4)
 
 `flow-process` · `org-chart` · `structure-block` · `layer-stack` · `concept-argument` · `comparison-matrix` · `matrix-heatmap` · `decision-flow` · `timeline-gantt` · `timeline-tracks` · `pipe-mapping` 의 사양도 그대로다. v2.4부터 같은 사양이 새 디자인(`templates/viz.html`)으로 그려지고, 지난 모양(각 템플릿 html)은 사양 최상위에 `"classic": true` 를 준다. 좌표를 직접 주는 `layout` 값(열 폭 등)은 새 디자인에서 쓰지 않는다 — 폭은 내용에 맞춰 잡는다.
+
+## 입체 층 도식 6종 (v2.5)
+
+`iso-stack` · `iso-pillars` · `iso-compare` · `iso-steps` · `iso-bars` · `iso-pyramid` 의 필드 명세는 [viz-spec.md](viz-spec.md) 「입체 층 도식」에 둔다. 예시는 `examples/iso-*.json`(그림 위 제목 줄 없이 그린다).

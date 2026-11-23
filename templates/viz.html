@@ -19,6 +19,8 @@
            staircase · before-after · waterfall · iceberg · swimlane · logic-tree — forms.html 과 같은 사양을 받는다
    기존 템플릿 11종의 새 디자인 (v2.4)  flow-process · org-chart · structure-block · layer-stack · concept-argument · comparison-matrix
            matrix-heatmap · decision-flow · timeline-gantt · timeline-tracks · pipe-mapping — 각 템플릿 html 과 같은 사양을 받는다
+   입체 층 도식 6종 (v2.5)  iso-stack 층 쌓기 · iso-pillars 판 위 기둥 · iso-compare 두 모델 비교 · iso-steps 입체 계단
+           iso-bars 기둥 높이 비교 · iso-pyramid 입체 피라미드 층 — 비스듬한 투영(x 오른쪽 아래·y 왼쪽 아래·z 위)
 
    도형은 SVG, 글자는 절대배치 HTML — 한국어 줄바꿈을 브라우저가 맡는다.
    색은 전부 토큰(tone 6가지). 그라데이션·입체는 프리셋 토큰 --gloss·--solid 가 0 이면 꺼진다
@@ -42,6 +44,7 @@ html,body { background:#fff; }
 .unit { text-align:left; font-size:26px; font-weight:var(--w-label); color:var(--ink-soft); margin:-8px 0 10px; }
 .concl { order:19; font-size:28px; font-weight:var(--w-strong); color:var(--tone-go); line-height:1.42; margin-top:14px; white-space:pre-line; }
 .takeaway { font-size:30px; font-weight:var(--w-strong); color:var(--navy-deep); line-height:1.4; margin:-6px 0 18px; padding-left:16px; border-left:6px solid var(--tone-wait); }
+#figure.no-title::before { display:none; }   /* v2.5 — 제목 줄이 없으면 제목 장식 막대도 그리지 않는다 */
 #figure::before { content:""; display:var(--title-tag); order:-2; width:46px; height:14px; background:var(--title-tag-color); margin-bottom:12px; }
 
 .vz-stage { position:relative; margin:0 auto; }
@@ -88,8 +91,10 @@ const ICONS  = /*__ICONS__*/ {};
   const D=F.data||F, kind=F.viz||F.template; root.classList.add('v-'+kind);
   const CS=getComputedStyle(root), GL=parseFloat(CS.getPropertyValue('--gloss'))||0, SOLID=(parseFloat(CS.getPropertyValue('--solid'))||0)>0;
   let uid=0; const TN=['main','sub','go','wait','stop','mute'];
+  const KX=0.92, KY=0.30, ISO=[];   // v2.5 입체 층 도식 — 비스듬한 투영 계수와 도형 등록부
   if(F.title){ const hd=div('hd'),tr=div('title-row'); tr.append(div('rule l'),t('h1',null,F.title),div('rule r')); hd.append(tr);
     if(F.subtitle) hd.append(t('div','sub',F.subtitle)); root.append(hd); }
+  if(!F.title) root.classList.add('no-title');
   if(F.takeaway) root.append(t('div','takeaway',F.takeaway));
   const R={'funnel-stack':funnelStack,'growing-circles':growingCircles,'circle-chain':circleChain,'ring-core':ringCore,'ribbon-list':ribbonList,'stat-strip':statStrip,
            'bar-highlight':barHighlight,'bar-line':barLine,'line-highlight':lineHighlight,'slope':slope,'dumbbell':d=>rangeLike(d,'dumbbell'),
@@ -98,7 +103,8 @@ const ICONS  = /*__ICONS__*/ {};
            'pyramid':pyramidX,'venn':vennX,'cycle':cycleX,'funnel':funnelX,'quadrant':quadrantX,'concentric':concentricX,'hub':hubX,
            'fishbone':fishboneX,'staircase':staircaseX,'before-after':beforeAfterX,'waterfall':waterfallX,'iceberg':icebergX,'swimlane':swimlaneX,'logic-tree':logicTreeX,
            'flow-process':flowProcessX,'org-chart':orgChartX,'structure-block':structureBlockX,'layer-stack':layerStackX,'concept-argument':conceptArgumentX,
-           'comparison-matrix':comparisonMatrixX,'matrix-heatmap':matrixHeatmapX,'decision-flow':decisionFlowX,'timeline-gantt':timelineGanttX,'timeline-tracks':timelineTracksX,'pipe-mapping':pipeMappingX};
+           'comparison-matrix':comparisonMatrixX,'matrix-heatmap':matrixHeatmapX,'decision-flow':decisionFlowX,'timeline-gantt':timelineGanttX,'timeline-tracks':timelineTracksX,'pipe-mapping':pipeMappingX,
+           'iso-stack':isoStackX,'iso-pillars':isoPillarsX,'iso-compare':isoCompareX,'iso-steps':isoStepsX,'iso-bars':isoBarsX,'iso-pyramid':isoPyramidX};
   const issues=[];
   if(!R[kind]) { issues.push('스크립트 오류: 알 수 없는 형태 '+kind); root.append(t('div','caption','[viz] 알 수 없는 형태: '+kind)); }
   else { try { R[kind](D); } catch(e) { issues.push('스크립트 오류: '+kind+' — '+e.message); const m=t('div','caption','[viz 오류] '+kind+': '+e.message); m.style.color='red'; root.append(m); console.error(e); } }
@@ -157,6 +163,7 @@ const ICONS  = /*__ICONS__*/ {};
       for(let i=0;i<L.length;i++) for(let j=i+1;j<L.length;j++){ const a=L[i], b=L[j], ix=Math.min(a.r,b.r)-Math.max(a.l,b.l), iy=Math.min(a.b,b.b)-Math.max(a.t,b.t);
         if(ix>4&&iy>4) out.push("글자 겹침: '"+a.txt+"' × '"+b.txt+"'"); }
     });
+    try { isoCheck(out); } catch(e) { out.push('스크립트 오류: 입체 점검 — '+e.message); }   // v2.5 — 입체 층 도식: 칩이 판 안에 드는지·앞 도형에 가려지는지·이름표가 도형을 덮는지·도형이 그림 밖으로 나가는지
     document.getElementById('__layout_issues').textContent=JSON.stringify([...new Set(out)]);
   }
 
@@ -783,7 +790,7 @@ const ICONS  = /*__ICONS__*/ {};
     lab(st,tx+14,wl+84,tw-34,bulletParts(d.below.items),{anchor:'tl',align:'l'});
   }
 
-  // ───────── swimlane 주체별 흐름 ─────────  lanes[], phases[]?, steps[{text,_lane,_col,highlight}]
+  // ───────── swimlane 주체별 흐름 ─────────  lanes[], phases[]?, steps[{text,_lane,_col,highlight,tone,next}], legend[{label,tone}]
   function swimlaneX(d){
     const lanes=d.lanes, S=d.steps, nl=lanes.length, nc=Math.max((d.phases||[]).length,...S.map(s=>s._col+1)), lw=190, top=d.phases?58:8, x0=lw+14, cw=(W-x0)/nc, bw=Math.min(300,cw-44);
     const bhs=S.map(s=>Math.max(64,measure(bw-28,[[s.text,'bb']]).h+24)), lh=Math.max(112,Math.max(...bhs)+44), st=stage(top+nl*lh+8);
@@ -793,15 +800,16 @@ const ICONS  = /*__ICONS__*/ {};
       lab(st,lw/2,y+lh/2,lw-24,[[l,'h2']],{cls:'on',fit:[lw-8,lh-12]}); });
     for(let j=1;j<nc;j++) add(st,'path',{d:`M${x0+cw*j} ${top+8} L${x0+cw*j} ${top+nl*lh-8}`},'stroke:var(--grid-line);stroke-width:1.5;stroke-dasharray:4 6;fill:none');
     const pos=S.map((s,k)=>({x:x0+cw*(s._col+0.5),y:top+lh*(s._lane+0.5),h:bhs[k]}));
-    for(let k=0;k<S.length-1;k++){ const a=pos[k], b=pos[k+1], col=tc('mute'); let dth, ex, ey, hd;
+    for(let k=0;k<S.length-1;k++){ if(S[k].next===false) continue; const a=pos[k], b=pos[k+1], col=tc(S[k+1].tone&&S[k+1].tone!=='sub'?S[k+1].tone:'mute'); let dth, ex, ey, hd;
       if(Math.abs(a.y-b.y)<2){ dth=`M${a.x+bw/2} ${a.y} L${b.x-bw/2-14} ${b.y}`; ex=b.x-bw/2-14; ey=b.y; hd='r'; }
       else if(Math.abs(a.x-b.x)<2){ const dn=b.y>a.y; dth=`M${a.x} ${a.y+(dn?a.h/2:-a.h/2)} L${b.x} ${b.y+(dn?-b.h/2-14:b.h/2+14)}`; ex=b.x; ey=b.y+(dn?-b.h/2-14:b.h/2+14); hd=dn?'d':'u'; }
       else { const dn=b.y>a.y, mx=a.x+bw/2+(b.x-bw/2-a.x-bw/2)/2; if(b.x>a.x){ dth=`M${a.x+bw/2} ${a.y} L${mx} ${a.y} L${mx} ${b.y} L${b.x-bw/2-14} ${b.y}`; ex=b.x-bw/2-14; ey=b.y; hd='r'; }
         else { dth=`M${a.x} ${a.y+(dn?a.h/2:-a.h/2)} L${a.x} ${(a.y+b.y)/2} L${b.x} ${(a.y+b.y)/2} L${b.x} ${b.y+(dn?-b.h/2-14:b.h/2+14)}`; ex=b.x; ey=b.y+(dn?-b.h/2-14:b.h/2+14); hd=dn?'d':'u'; } }
       add(st,'path',{d:dth},'stroke:'+col+';stroke-width:3;fill:none;stroke-linejoin:round');
       add(st,'polygon',{points:hd==='r'?`${ex},${ey-7} ${ex+14},${ey} ${ex},${ey+7}`:(hd==='d'?`${ex-7},${ey} ${ex},${ey+14} ${ex+7},${ey}`:`${ex-7},${ey} ${ex},${ey-14} ${ex+7},${ey}`)},'fill:'+col); }
-    S.forEach((s,k)=>{ const p=pos[k], hot=s.highlight; card(st,p.x-bw/2,p.y-p.h/2,bw,p.h,hot?'wait':'sub',hot?{solid:1}:{white:1,strong:0});
-      lab(st,p.x,p.y,bw-28,[[s.text,'bb']],{cls:hot?'on':'',fit:[bw-6,p.h-4]}); });
+    S.forEach((s,k)=>{ const p=pos[k], hot=s.highlight, tn=s.tone||'sub'; card(st,p.x-bw/2,p.y-p.h/2,bw,p.h,hot?'wait':tn,hot?{solid:1}:{white:1,strong:0});
+      lab(st,p.x,p.y,bw-28,[[s.text,'bb',(!hot&&s.tone)?tc(s.tone):undefined]],{cls:hot?'on':'',fit:[bw-6,p.h-4]}); });
+    const LG=d.legend||F.legend; if(LG) legend(LG.map(l=>({label:l.label||l.text,color:tc(l.tone||'main'),shape:'dot'}))).style.margin='14px 0 0';
   }
 
   // ───────── logic-tree 이슈 트리 ─────────  root{title,desc}, children[{title,children[{title}]}]
@@ -857,14 +865,15 @@ const ICONS  = /*__ICONS__*/ {};
       const p=parts(c); p[0][2]=tc(tn); lab(st,x+cw/2,cy0+ch/2+6,cw-28,p,{fit:[cw-6,ch-14]}); });
   }
 
-  // ───────── structure-block ─────────  layers[{label,boxes[{title,desc}]}]
+  // ───────── structure-block ─────────  layers[{label,tone,boxes[{title,desc,tone}]}], legend[{label,tone}]
   function structureBlockX(d){
     const Ls=d.layers, lw=168, pad=16, bg=14, gap=14, tones=['main','sub','go','wait','mute'], rows=[]; let y=6;
     Ls.forEach((l,i)=>{ const n=l.boxes.length, bw=(W-lw-18-2*pad-(n-1)*bg)/n, h=Math.max(...l.boxes.map(b=>measure(bw-28,[[b.title,'h2'],[b.desc,'b']]).h))+30; rows.push({l,i,y,h:h+2*pad,bw,bh:h}); y+=h+2*pad+gap; });
     const st=stage(y-gap+8);
     rows.forEach(r=>{ const tn=r.l.tone||tones[r.i%5], bx=lw+18; add(st,'rect',{x:bx,y:r.y,width:W-bx,height:r.h,rx:SOLID?10:0},'fill:'+tc(tn,'tint'));
       add(st,'rect',{x:0,y:r.y,width:lw,height:r.h,rx:SOLID?10:0},'fill:'+tc(tn)); gloss(st,'rect',{x:0,y:r.y,width:lw,height:r.h,rx:10},1.1); lab(st,lw/2,r.y+r.h/2,lw-20,[[r.l.label,'h2']],{cls:'on',fit:[lw-6,r.h-6]});
-      r.l.boxes.forEach((b,j)=>{ const x=bx+pad+j*(r.bw+bg); card(st,x,r.y+pad,r.bw,r.bh,tn,{white:1}); lab(st,x+r.bw/2,r.y+pad+r.bh/2,r.bw-28,[[b.title,'h2',tc(tn)],[b.desc,'b']],{fit:[r.bw-6,r.bh-4]}); }); });
+      r.l.boxes.forEach((b,j)=>{ const x=bx+pad+j*(r.bw+bg), bt=b.tone||tn; card(st,x,r.y+pad,r.bw,r.bh,bt,{white:1}); lab(st,x+r.bw/2,r.y+pad+r.bh/2,r.bw-28,[[b.title,'h2',tc(bt)],[b.desc,'b']],{fit:[r.bw-6,r.bh-4]}); }); });
+    if(d.legend) legend(d.legend.map(l=>({label:l.label||l.text,color:tc(l.tone||'main'),shape:'dot'}))).style.margin='14px 0 0';
   }
 
   // ───────── layer-stack ─────────  upper{title,flag,blocks[]}, divider{up,down}, lower{…}, band{steps[{num,text,sub}],note}
@@ -1012,6 +1021,178 @@ const ICONS  = /*__ICONS__*/ {};
         if(b._node!=null&&nyc[b._node]!=null){ const sy_=ly+6+(o.lh-10)/2, sxx=Math.min(px0+pw+gut-22,lx+w+6); add(st,'path',{d:`M${sxx} ${sy_} C ${(sxx+nx)/2+10} ${sy_}, ${(sxx+nx)/2-10} ${nyc[b._node]}, ${nx-14} ${nyc[b._node]}`},'stroke:'+tc('go')+';stroke-width:2.5;stroke-dasharray:3 6;stroke-linecap:round;fill:none');
           add(st,'polygon',{points:`${nx-14},${nyc[b._node]-7} ${nx-2},${nyc[b._node]} ${nx-14},${nyc[b._node]+7}`},'fill:'+tc('go')); } });
       if(r.note) lab(st,px0,o.y+o.h-12,pw+gut-30,[[r.note,'s']],{anchor:'bl',align:'l'}); });
+  }
+
+  // ═════════════════════════ 입체 층 도식 6종 (v2.5) ═════════════════════════
+  // 비스듬한 투영 — 바닥 x 는 오른쪽 아래, y 는 왼쪽 아래, z 는 위. 화면 = (ox+(x−y)·KX, oy+(x+y)·KY−z).
+  // 면은 tone 색 + 검정 덮개(옆면 그늘), 윗면 테두리는 흰 선. 그라데이션은 --gloss 가 켜진 프리셋(design-report)만.
+  // 판 위 칩은 화면 가로 한 줄로 놓는다 — 투영 방향으로 비스듬히 늘어놓으면 서로 겹친다(2026-11-23 시안에서 확인).
+  // 배치 점검(isoCheck): 칩이 판 윗면 안에 드는지 · 칩이 앞 도형에 가려지는지 · 바깥 이름표가 도형을 덮는지 · 도형이 그림 밖으로 나가는지.
+  // 투영 계수 KX·KY 와 도형 등록부 ISO 는 맨 위(형태 함수를 부르기 전)에 선언한다
+  function isoReg(st){ let r=ISO.find(q=>q.st===st); if(!r){ r={st,solids:[],chips:[]}; ISO.push(r); } return r; }
+  function prj(o,x,y,z){ return [o[0]+(x-y)*KX, o[1]+(x+y)*KY-(z||0)]; }
+  function ptsStr(p){ return p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' '); }
+  // 상자 하나. o 화면 원점, 바닥 x0..x1 · y0..y1, 높이 z0..z1. look: dark(진한 윗면) · line(중간) · tint(옅은 판)
+  function isoBox(st,o,x0,x1,y0,y1,z0,z1,tn,look,name){
+    const A=(x,y,z)=>prj(o,x,y,z), v=look||'dark';
+    const top=[A(x0,y0,z1),A(x1,y0,z1),A(x1,y1,z1),A(x0,y1,z1)];
+    const fl=[A(x0,y1,z1),A(x1,y1,z1),A(x1,y1,z0),A(x0,y1,z0)];   // 앞 왼쪽 면 (y=y1)
+    const fr=[A(x1,y1,z1),A(x1,y0,z1),A(x1,y0,z0),A(x1,y1,z0)];   // 앞 오른쪽 면 (x=x1)
+    const topC=v==='dark'?tc(tn):tc(tn,v), sideC=v==='tint'?tc(tn,'line'):topC, k=v==='dark'?[0.2,0.36]:(v==='line'?[0.1,0.24]:[0.02,0.14]);
+    if(z1-z0>0.5) [[fl,k[0]],[fr,k[1]]].forEach(([f,kk])=>{ add(st,'polygon',{points:ptsStr(f)},'fill:'+sideC); add(st,'polygon',{points:ptsStr(f)},'fill:#000;fill-opacity:'+kk); });
+    add(st,'polygon',{points:ptsStr(top)},'fill:'+topC+';stroke:#fff;stroke-width:1.5;stroke-linejoin:round');
+    if(v==='dark') add(st,'polygon',{points:ptsStr(top)},'fill:#fff;fill-opacity:.16');   // 빛 받는 윗면 — 진한 면이 남색 한 곳에만 남게 (승인 시안: 진한 면 10%)
+    if(GL>0) add(st,'polygon',{points:ptsStr(top)},'fill:'+grad(st,[[0,'#fff',GL*1.2],[1,'#fff',0]],{attrs:{x1:0,y1:0,x2:1,y2:1}}));
+    const s={top,faces:[top,fl,fr],name:String(name||'')}; isoReg(st).solids.push(s); return s;
+  }
+  // 볼록 다각형이 가로줄 y 에서 차지하는 좌우 끝
+  function spanAt(poly,y){ let lo=Infinity,hi=-Infinity; for(let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length];
+      if(a[1]!==b[1] && (a[1]-y)*(b[1]-y)<=0){ const x=a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]); lo=Math.min(lo,x); hi=Math.max(hi,x); } } return [lo,hi]; }
+  function inPoly(poly,p,tol){ let sg=0; for(let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length], L=Math.hypot(b[0]-a[0],b[1]-a[1])||1;
+      const c=((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]))/L; if(c>tol){ if(sg<0) return false; sg=1; } else if(c<-tol){ if(sg>0) return false; sg=-1; } } return true; }
+  function polyHit(A,B,tol){ for(const poly of [A,B]) for(let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length], nx=b[1]-a[1], ny=a[0]-b[0], L=Math.hypot(nx,ny); if(!L) continue;
+      const pr=q=>q.map(p=>(p[0]*nx+p[1]*ny)/L), pa=pr(A), pb=pr(B); if(Math.min(Math.max(...pa),Math.max(...pb))-Math.max(Math.min(...pa),Math.min(...pb))<tol) return false; } return true; }
+  // 판 윗면의 가장 넓은 가로 띠에 칩(흰 알약)을 한 줄로
+  function isoChips(st,s,chips,tn,look){
+    chips=[].concat(chips||[]).filter(c=>c!=null&&c!==''); if(!chips.length) return;
+    const ch=40, g=6, ys=s.top.map(p=>p[1]), cy=(Math.min(...ys)+Math.max(...ys))/2;
+    const [a1,b1]=spanAt(s.top,cy-ch/2), [a2,b2]=spanAt(s.top,cy+ch/2), L=Math.max(a1,a2)+12, R=Math.min(b1,b2)-12, cx=(L+R)/2;
+    const ws=chips.map(c=>measure(0,[[c,'sb']]).w+26), eq=Math.max(...ws);
+    if(eq*ws.length+g*(ws.length-1)<=R-L) ws.fill(eq);
+    let x=cx-(sum(ws)+g*(ws.length-1))/2;
+    chips.forEach((c,i)=>{ const w=ws[i];
+      add(st,'rect',{x,y:cy-ch/2,width:w,height:ch,rx:ch/2},'fill:#fff;fill-opacity:.95'+(look==='dark'?'':';stroke:'+tc(tn,'line')+';stroke-width:1.5'));
+      const e=lab(st,x+w/2,cy,0,[[c,'sb',tc(tn)]],{fit:[w,ch]}); e.dataset.chip='1';
+      isoReg(st).chips.push({rect:[x,cy-ch/2,x+w,cy+ch/2],host:s,txt:String(c)}); x+=w+g; });
+  }
+  function isoArrow(st,x,y1,y2,tn){ const up=y2<y1, h=13; add(st,'path',{d:`M${x} ${y1} L${x} ${y2+(up?h:-h)}`},'stroke:'+tc(tn)+';stroke-width:4;fill:none;stroke-linecap:round');
+    add(st,'polygon',{points:up?`${x-10},${y2+h+2} ${x},${y2} ${x+10},${y2+h+2}`:`${x-10},${y2-h-2} ${x},${y2} ${x+10},${y2-h-2}`},'fill:'+tc(tn)); }
+  function isoCheck(out){
+    ISO.forEach(r=>{ const H=r.st.h, B=r.st.el.getBoundingClientRect();
+      r.solids.forEach(s=>{ if(s.faces.some(f=>f.some(p=>p[0]<-3||p[0]>W+3||p[1]<-3||p[1]>H+3))) out.push("도형이 그림 밖으로 나감: '"+s.name.slice(0,16)+"'"); });
+      r.chips.forEach(c=>{ const R=c.rect, pts=[[R[0],R[1]],[R[2],R[1]],[R[2],R[3]],[R[0],R[3]]];
+        if(!pts.every(p=>inPoly(c.host.top,p,2))) out.push("칩이 판 밖으로 나감(칩 글을 줄이거나 판을 넓힐 것): '"+c.txt.slice(0,16)+"'");
+        const after=r.solids.slice(r.solids.indexOf(c.host)+1); if(after.some(s=>s.faces.some(f=>polyHit(f,pts,3)))) out.push("칩이 앞 도형에 가려짐: '"+c.txt.slice(0,16)+"'"); });
+      r.st.el.querySelectorAll('.lb').forEach(e=>{ if(e.dataset.chip||!e.textContent.trim()) return; const rg=document.createRange(); rg.selectNodeContents(e); const q=rg.getBoundingClientRect(); if(!q.width) return;
+        const pts=[[q.left-B.left,q.top-B.top],[q.right-B.left,q.top-B.top],[q.right-B.left,q.bottom-B.top],[q.left-B.left,q.bottom-B.top]];
+        const hit=r.solids.find(s=>s.faces.some(f=>polyHit(f,pts,3))); if(hit) out.push("이름표가 도형을 덮음: '"+e.textContent.trim().replace(/\s+/g,' ').slice(0,16)+"' × '"+hit.name.slice(0,12)+"'"); });
+    });
+  }
+  function isoTone(m,i,def){ return m.highlight?'wait':(m.tone||def[Math.min(def.length-1,i)]); }
+
+  // ───────── iso-stack 층 쌓기 ─────────  layers[{title,desc,chips[],tone,look,highlight}] 위→아래, link(층 사이 화살표 글), link_dir up|down
+  // 영역 [X0, X0+Wd] · 위 Y0 에 그리고 맨 아래 y 를 돌려준다 (iso-compare 가 다시 쓴다)
+  function isoStack(st,X0,Wd,Y0,d){
+    const Ls=d.layers||[], n=Ls.length, def=[['main'],['go','main'],['go','sub','main'],['go','sub','main','mute'],['go','sub','main','mute','mute']][Math.max(0,Math.min(5,n)-1)];
+    const ch=40, th=d.thick||30, gut=46, labW=Math.max(180,Math.min(d.label_w||320, Math.max(...Ls.map(l=>Math.max(measure(0,[[l.title,'h2']]).w,measure(0,[[l.desc,'s']]).w)))+16));
+    const Cmax=Math.max(0,...Ls.map(l=>{ const c=[].concat(l.chips||[]); return c.length?sum(c.map(x=>measure(0,[[x,'sb']]).w+26))+6*(c.length-1):0; }));
+    const need=Cmax?(Cmax+24+ch*KX/KY)/0.88:0, room=Wd-labW-gut;   // 칩 줄 위·아래 끝이 비스듬한 변을 따라 밀리는 몫(ch·KX/KY)까지 넣는다
+    const span=Math.min(room, Math.max(need, d.span||Math.min(640,room*0.62))), S=span/KX, dp=S*0.44, w=S-dp, hh=S/2*KY;
+    const lh=Ls.map((l,i)=>measure(labW,[[l.title,'h2'],[l.desc,'s']],{align:'l'}).h);
+    const pitch=Math.max(d.gap||0, hh+th+ch/2+14, ...lh.slice(1).map((h,i)=>(h+lh[i])/2+(d.link?52:14)));
+    const cx=X0+span/2, cy=i=>Y0+Math.max(hh,lh[0]/2)+i*pitch, lx=X0+span+gut, tone=(l,i)=>isoTone(l,i,def);
+    for(let i=n-1;i>=0;i--){ const l=Ls[i], tn=tone(l,i), look=l.look||'dark', s=isoBox(st,[cx,cy(i)],-w/2,w/2,-dp/2,dp/2,-th,0,tn,look,l.title); isoChips(st,s,l.chips,tn,look); }
+    Ls.forEach((l,i)=>lab(st,lx,cy(i),labW,[[l.title,'h2',tc(tone(l,i))],[l.desc,'s']],{anchor:'l',align:'l'}));
+    if(d.link) for(let i=0;i<n-1;i++){ const a=cy(i)+lh[i]/2+6, b=cy(i+1)-lh[i+1]/2-6, ax=X0+span+gut/2-4, up=(d.link_dir||'up')==='up';
+      if(b-a<30) continue; isoArrow(st,ax,up?b:a,up?a:b,'wait'); lab(st,lx,(a+b)/2,labW,[[d.link,'sb',tc('wait')]],{anchor:'l',align:'l'}); }
+    return cy(n-1)+Math.max(hh+th,lh[n-1]/2);
+  }
+  function isoStackX(d){ const st=stage(10), b=isoStack(st,0,W,6,d); st.h=b+8; }
+
+  // ───────── iso-pillars 단층 판 위 기둥 ─────────  base{title,desc,tone}, pillars[{label,tone,highlight}], rows_title, rows[{before,after}]
+  function isoPillars(st,X0,Wd,Y0,d){
+    const P=d.pillars||[], n=P.length, b=d.base||{}, big=Wd>1000, p=d.pillar_size||(big?66:50), ph=d.pillar_h||(big?104:72), th=d.thick||(big?40:32), dp=d.depth||(big?190:140);
+    const ptn=d.pillar_tone||(d._side?'mute':'go'), btn=b.tone||(d._side?'mute':'main');
+    const lw=P.map(m=>measure(0,[[m.label,'h2']]).w), lh=measure(0,[['가','h2']]).h;
+    let s=big?p+84:p+30; for(let k=0;k<n-1;k++) s=Math.max(s, Math.min((lh+6)/KY, ((lw[k]+lw[k+1])/2+12)/KX));
+    const mg=Math.max(36,p*0.8); let w=(n-1)*s+p+2*mg; if((w+dp)*KX>Wd){ s=Math.max(p+12,(Wd/KX-dp-p-2*mg)/Math.max(1,n-1)); w=(n-1)*s+p+2*mg; }
+    const cx=X0+Wd/2, xk=k=>-w/2+mg+p/2+k*s, top0=Math.min(xk(0)*KY-ph-p*KY-8-lh, -(w+dp)/2*KY), oy=Y0-top0, O=[cx,oy];
+    const bs=isoBox(st,O,-w/2,w/2,-dp/2,dp/2,-th,0,btn,b.look||'tint',b.title||'기반');
+    P.forEach((m,k)=>{ const tn=m.highlight?'wait':(m.tone||ptn), look=(m.highlight||m.tone)?'dark':'line', x=xk(k);
+      isoBox(st,O,x-p/2,x+p/2,-p/2,p/2,0,m.h?ph*m.h:ph,tn,look,m.label);
+      const q=prj(O,x,0,m.h?ph*m.h:ph); lab(st,q[0],q[1]-p*KY-8,0,[[m.label,'h2',tc(m.highlight?'wait':(m.tone||(ptn==='mute'?'mute':'main')))]],{anchor:'b'}); });
+    let y=oy+(w/2+dp/2)*KY+th+16; void bs;
+    if(b.title){ const e=lab(st,cx,y,Wd,[[b.title,'bb'],[b.desc,'s']],{anchor:'t'}); y+=e.offsetHeight+14; }
+    const R=d.rows||[];
+    if(d.rows_title&&!b.title){ const e=lab(st,X0+Wd/2,y,Wd,[[d.rows_title,'bb']],{anchor:'t'}); y+=e.offsetHeight+10; }
+    else if(d.rows_title){ const e=lab(st,X0+Wd/2,y,Wd,[[d.rows_title,'sb']],{anchor:'t'}); y+=e.offsetHeight+10; }
+    if(R.length&&Wd>1000){ const rw_=Math.min(Wd,Math.max(760,(w+dp)*KX)); X0=X0+(Wd-rw_)/2; Wd=rw_; }
+    if(R.length){ const fw=Math.min(Wd*0.48,Math.max(...R.map(r=>measure(0,[[r.before,'b']]).w))+20), tw=Wd-fw-56;
+      R.forEach(r=>{ const h=Math.max(50,measure(fw-16,[[r.before,'b']],{align:'l'}).h+16,measure(tw-8,[[r.after,'bb']],{align:'l'}).h+16);
+        add(st,'rect',{x:X0,y,width:Wd,height:h,rx:SOLID?8:0},'fill:var(--fill-faint)');
+        lab(st,X0+14,y+h/2,fw-16,[[r.before,'s']],{anchor:'l',align:'l'});
+        add(st,'polygon',{points:`${X0+fw+10},${y+h/2-9} ${X0+fw+26},${y+h/2} ${X0+fw+10},${y+h/2+9}`},'fill:'+tc('wait'));
+        lab(st,X0+fw+40,y+h/2,tw-8,[[r.after,'bb']],{anchor:'l',align:'l'}); y+=h+8; }); y-=8; }
+    return y;
+  }
+  function isoPillarsX(d){ const st=stage(10), b=isoPillars(st,0,W,6,d); st.h=b+8; }
+
+  // ───────── iso-compare 두 모델 비교 ─────────  left{title,sub,short,tone, + iso-pillars 또는 iso-stack 사양}, right{…}, shift(가운데 띠), rows[{label,left,right}], split(왼쪽 몫 0.3~0.5)
+  function isoCompareX(d){
+    const Lf=d.left||{}, Rt=d.right||{}, st=stage(10), gap=96, lw=Math.round(W*(d.split||0.34)), rx=lw+gap, rw=W-rx;
+    const lt=Lf.tone||(Lf.layers?'main':'mute'), rt=Rt.tone||(Rt.layers?'main':'go');
+    const h1=lab(st,0,0,lw,[[Lf.title,'h1',tc(lt)],[Lf.sub,'s']],{anchor:'tl',align:'l'}), h2=lab(st,rx,0,rw,[[Rt.title,'h1',tc(rt)],[Rt.sub,'s']],{anchor:'tl',align:'l'});
+    const y0=Math.max(h1.offsetHeight,h2.offsetHeight)+34, draw=(o,x,w)=>o.layers?isoStack(st,x,w,y0,o):isoPillars(st,x,w,y0,Object.assign({_side:o===Lf},o));
+    const b1=draw(Lf,0,lw), b2=draw(Rt,rx,rw), my=y0+(Math.min(b1,b2)-y0)*0.42, x1=lw+18, x2=lw+gap-18, k=26;
+    const pts=`${x1},${my-50} ${x2-k},${my-50} ${x2},${my} ${x2-k},${my+50} ${x1},${my+50} ${x1+k},${my}`;
+    add(st,'polygon',{points:pts},'fill:'+(GL>0?grad(st,[[0,'var(--tone-mute-tint)'],[1,'var(--tone-mute-line)']],{attrs:{x1:0,y1:0,x2:1,y2:0}}):tc('mute','line')));
+    let y=Math.max(b1,b2)+34;
+    if(d.shift){ const m=measure(W-80,[[d.shift,'bb']]), h=m.h+28; add(st,'rect',{x:0,y,width:W,height:h,rx:SOLID?h/2:0},'fill:'+tc('main')); gloss(st,'rect',{x:0,y,width:W,height:h,rx:h/2},1.1);
+      lab(st,W/2,y+h/2,W-80,[[d.shift,'bb']],{cls:'on',fit:[W,h]}); y+=h+22; }
+    const R=d.rows||[];
+    if(R.length){ const cw=180, aw=42, lc=(W-cw-12-aw)/2, xL=cw+12, xR=xL+lc+aw;
+      lab(st,xL+lc/2,y,lc,[[Lf.short||Lf.title,'bb',tc(lt)]],{anchor:'t'}); const hh=lab(st,xR+lc/2,y,lc,[[Rt.short||Rt.title,'bb',tc(rt)]],{anchor:'t'}); y+=hh.offsetHeight+10;
+      R.forEach(r=>{ const h=Math.max(56,measure(cw-20,[[r.label,'bb']]).h+20,measure(lc-30,[[r.left,'b']]).h+20,measure(lc-30,[[r.right,'bb']]).h+20);
+        add(st,'rect',{x:0,y,width:cw,height:h,rx:SOLID?8:0},'fill:'+tc('main')); lab(st,cw/2,y+h/2,cw-20,[[r.label,'bb']],{cls:'on',fit:[cw,h]});
+        add(st,'rect',{x:xL,y,width:lc,height:h,rx:SOLID?8:0},'fill:var(--fill-faint)'); lab(st,xL+lc/2,y+h/2,lc-30,[[r.left,'b']]);
+        add(st,'polygon',{points:`${xL+lc+12},${y+h/2-11} ${xL+lc+aw-10},${y+h/2} ${xL+lc+12},${y+h/2+11}`},'fill:'+tc('wait'));
+        add(st,'rect',{x:xR,y,width:lc,height:h,rx:SOLID?8:0},'fill:'+tc(rt,'tint')); lab(st,xR+lc/2,y+h/2,lc-30,[[r.right,'bb',tc(rt)]]); y+=h+10; }); y-=10; }
+    st.h=y+8;
+  }
+
+  // ───────── iso-steps 입체 계단 ─────────  steps[{tag,title,desc,tone,highlight}] 왼쪽→오른쪽으로 오른다, goal(맨 윗단 칩)
+  function isoStepsX(d){
+    const S_=d.steps||[], n=S_.length, st=stage(10), def=S_.map((m,i)=>i===n-1?'main':'go');
+    const s=Math.min(d.step_w||330,(W-16)/KX/(n+0.75)), dpx=s*0.75, rise=d.rise||Math.max(60,s*0.28), h0=d.base_h||46, z=i=>h0+i*rise, lw=s*KX-26;
+    const tone=(m,i)=>isoTone(m,i,def), look=(m,i)=>(m.highlight||m.tone||i===n-1)?'dark':(i<(n-1)/2?'tint':'line');
+    const parts=(m,i)=>[[m.title,'h2',tc(tone(m,i))],[m.desc,'b']], lh=S_.map((m,i)=>measure(lw,parts(m,i),{align:'l'}).h);
+    const ox=(W-(dpx+n*s)*KX)/2, top=Math.min(...S_.map((m,i)=>-(i+1)*s*KY-z(i)-14-lh[i])), oy=-top+4, O=[ox,oy];
+    for(let i=n-1;i>=0;i--){ const m=S_[i], tn=tone(m,i), lk=look(m,i), b=isoBox(st,O,0,dpx,-(i+1)*s,-i*s,0,z(i),tn,lk,m.title);
+      const chips=[m.tag].concat(i===n-1&&d.goal?[d.goal]:[]).filter(Boolean); isoChips(st,b,chips,tn,lk); }
+    S_.forEach((m,i)=>{ const q=prj(O,0,-(i+1)*s,z(i)); lab(st,ox+i*s*KX+14,q[1]-14,lw,parts(m,i),{anchor:'bl',align:'l'}); });
+    st.h=oy+dpx*KY+8;
+  }
+
+  // ───────── iso-bars 기둥 높이 비교 ─────────  items[{label,value,highlight,tone}], unit, decimals, max_h
+  // 입체 막대는 높이를 정확히 읽기 어렵다 — 값은 늘 글자로 적고, 0에서 시작하며, 정밀 비교는 bar-highlight 로 그린다
+  function isoBarsX(d){
+    const it=d.items||[], n=it.length, dec=d.decimals, vals=it.map(m=>Number(m.value));
+    if(vals.some(v=>!(v>=0))) throw new Error('iso-bars 는 0 이상인 값만 그린다 (음수·빈 값은 bar-highlight)');
+    unitLine(d.unit);
+    const mx=Math.max(...vals)||1, Hm=d.max_h||320, slot=(W-20)/n, p=Math.min(d.bar_w||150,slot*0.56/(2*KX)), anyHot=it.some(m=>m.highlight);
+    const vH=measure(0,[['0','v']]).h, labH=Math.max(...it.map(m=>measure(slot-12,[[m.label,'b']]).h)), oy=vH+14+Hm+p*KY, fy=oy+p*KY+16;
+    const st=stage(fy+14+12+labH+8), fx0=4, fx1=W-4;
+    add(st,'rect',{x:fx0,y:oy-p*KY-16,width:fx1-fx0,height:fy-(oy-p*KY-16),rx:SOLID?6:0},'fill:'+tc('mute','tint'));
+    add(st,'rect',{x:fx0,y:fy,width:fx1-fx0,height:12},'fill:'+tc('mute','line'));
+    it.forEach((m,i)=>{ const cx=10+slot*(i+0.5), O=[cx,oy], zz=Math.max(2,vals[i]/mx*Hm), hot=m.highlight, tn=hot?(m.tone||d.highlight_tone||'go'):(anyHot?'mute':(m.tone||d.tone||'sub')), lk=(hot||!anyHot)?'dark':'line';
+      isoBox(st,O,-p/2,p/2,-p/2,p/2,0,zz,tn,lk,m.label);
+      lab(st,cx,oy-p*KY-zz-8,0,[[fmt(m.value,dec),hot?'v':'vs',hot?tc(tn):null]],{anchor:'b'});
+      lab(st,cx,fy+24,slot-12,[[m.label,hot?'bb':'b',hot?tc(tn):null]],{anchor:'t'}); });
+  }
+
+  // ───────── iso-pyramid 입체 피라미드 층 ─────────  levels[{title,desc,tone,highlight}] 위→아래, 층마다 판이 넓어진다
+  function isoPyramidX(d){
+    const lv=d.levels||[], n=lv.length, st=stage(10), th=d.thick||(n>4?50:60), A=d.base_size||Math.min(400,W*0.44/(2*KX)), amin=A*(d.top_ratio||0.36);
+    const a=i=>n===1?A:amin+(A-amin)*i/(n-1), z0=i=>(n-1-i)*th, ramp=[['main','dark'],['sub','dark'],['go','dark'],['go','line'],['mute','line']];
+    const pick=(m,i)=>m.highlight?['wait','dark']:(m.tone?[m.tone,'dark']:ramp[Math.min(4,Math.round(i*(Math.min(n,5)-1)/Math.max(1,n-1)))]);
+    const ox=A*KX+10, lx=ox+A*KX+70, lw=W-lx, oy=12+a(0)*KY+n*th, O=[ox,oy];
+    const parts=(m,i)=>[[m.title,'h2',tc(pick(m,i)[0])],[m.desc,'b']], hs=lv.map((m,i)=>measure(lw,parts(m,i),{align:'l'}).h);
+    for(let i=n-1;i>=0;i--){ const p=pick(lv[i],i); isoBox(st,O,-a(i)/2,a(i)/2,-a(i)/2,a(i)/2,z0(i),z0(i)+th,p[0],p[1],lv[i].title); }
+    const fy=lv.map((m,i)=>prj(O,a(i)/2,-a(i)/2,z0(i)+th/2)), ly=fy.map(q=>q[1]);   // 층의 오른쪽 끝 모서리 가운데 — 아래층 윗면을 가로지르지 않는다
+    for(let k=1;k<n;k++) ly[k]=Math.max(ly[k],ly[k-1]+(hs[k]+hs[k-1])/2+12);
+    lv.forEach((m,i)=>{ const p=pick(m,i); dots(st,fy[i][0]+10,fy[i][1],lx-24,ly[i],p[0]); add(st,'circle',{cx:lx-16,cy:ly[i],r:6},'fill:'+tc(p[0]));
+      lab(st,lx,ly[i],lw,parts(m,i),{anchor:'l',align:'l'}); });
+    st.h=Math.max(oy+A*KY, ly[n-1]+hs[n-1]/2)+8;
   }
 })();
 </script>

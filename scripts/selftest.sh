@@ -18,6 +18,8 @@
 #   ⑧-2 형태 14종 (v2.3)·템플릿 11종 (v2.4) 새 디자인 — 같은 사양이 viz 로 가는가, "classic": true 는 지난 모양으로 가는가
 #   ⑪ viz 18종 (v2.2·v2.2.1)     — 디자인 보고서풍 구조도 7종·데이터 그래프 11종(유량도·연결도·연결망 포함)마다 예시·구도 묘사·한국어 이름이 있는가,
 #                           기존 프리셋은 평면(--gloss 0·--solid 0)이고 design-report 만 켜는가, 도형보다 큰 글자를 실제로 잡는가
+#   ⑫ 입체 층 도식 6종 (v2.5) — 형태마다 예시·구도 묘사·한국어 이름이 있는가, 이미지 프롬프트가 '3D 금지'와 부딪히지 않는가,
+#                           칩이 판 밖으로 나간 것·이름표가 도형을 덮은 것·음수 막대를 실패(exit 4)로 잡는가
 set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -60,7 +62,7 @@ echo "── ④ 예시 스키마 ──"
 python3 - <<'PY' && ok "예시 전건이 실재 템플릿·프리셋 참조" || ng "예시 참조 오류"
 import json, glob, os, sys
 sys.path.insert(0, 'scripts'); import render_figure as RF
-tpl = {os.path.basename(p)[:-5] for p in glob.glob('templates/*.html')} | set(RF.FORMS) | set(getattr(RF, 'VIZ', []))
+tpl = {os.path.basename(p)[:-5] for p in glob.glob('templates/*.html')} | set(RF.FORMS) | set(getattr(RF, 'VIZ', [])) | set(getattr(RF, 'ISO', []))
 pre = {os.path.basename(p)[:-4] for p in glob.glob('presets/*.css')}
 bad = False
 for p in sorted(glob.glob('examples/*.json')):
@@ -259,6 +261,45 @@ J
   # 같은 사양을 house 로 그리면 그라데이션·입체가 꺼져 있어야 한다 (평면)
   python3 scripts/render_figure.py examples/viz-funnel-stack.json --preset house --html-only -o "$RT/h.html" >/dev/null 2>&1
   if grep -q -- "--gloss: 0;" "$RT/h.html" && grep -q -- "--solid: 0;" "$RT/h.html"; then ok "house 프리셋에서는 평면(그라데이션·입체 꺼짐)"; else ng "house 에서 그라데이션 스위치가 켜짐"; fi
+  rm -rf "$RT"
+fi
+
+echo "── ⑫ 입체 층 도식 6종 (v2.5) ──"
+python3 - <<'PY2' && ok "형태마다 예시·구도 묘사·이름 완비, 프롬프트가 투영을 막지 않음" || ng "입체 형태 누락·프롬프트 충돌"
+import sys, os, json
+sys.path.insert(0, 'scripts'); import render_figure as RF, gen_image as G, figure_pack as P
+src = open('templates/viz.html', encoding='utf-8').read()
+bad = [f for f in RF.ISO if not os.path.exists('examples/%s.json' % f) or f not in G.HINTS or f not in P.FORM_KO or ("'%s'" % f) not in src]
+for f in RF.ISO:
+    if RF.resolve_form({"template": f}).get("template") != "viz": bad.append(f + ' 경로')
+    if os.path.exists('examples/%s.json' % f):
+        pr, _ = G.build_prompt(json.load(open('examples/%s.json' % f, encoding='utf-8')), 'house', RF.load_preset('house'))
+        if 'AVOID: 3D, isometric' in pr or 'oblique' not in pr: bad.append(f + ' 프롬프트')
+if bad: print("     누락·오류:", bad)
+print("     %d종" % len(RF.ISO)); sys.exit(1 if bad else 0)
+PY2
+CB="${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
+if [ ! -x "$CB" ]; then
+  echo "     크롬 없음 — 건너뜀"
+else
+  RT=$(mktemp -d)
+  # 오른쪽 판이 좁아 칩이 판 밖으로 나가면 실패해야 한다
+  cat > "$RT/a.json" <<'J'
+{"template":"iso-compare","split":0.6,"left":{"title":"왼쪽","pillars":[{"label":"가"},{"label":"나"}]},"right":{"title":"오른쪽","layers":[{"title":"위층","chips":["긴 칩 글자 하나","긴 칩 글자 둘","긴 칩 글자 셋"]},{"title":"아래층","chips":["기반"]}]}}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/a.json" -o "$RT/a.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "칩이 판 밖"; then ok "칩이 판 밖으로 나간 것을 실패로 잡음(exit 4)"; else ng "판 밖 칩을 못 잡음 (rc=$RC)"; fi
+  # 긴 기둥 이름표가 옆 기둥을 덮으면 실패해야 한다
+  cat > "$RT/b.json" <<'J'
+{"template":"iso-pillars","base":{"title":"판"},"pillars":[{"label":"아주 긴 기둥 이름표 하나"},{"label":"아주 긴 기둥 이름표 둘"},{"label":"셋"},{"label":"넷"},{"label":"다섯"},{"label":"여섯"},{"label":"일곱"},{"label":"여덟"},{"label":"아홉"},{"label":"열"}]}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/b.json" -o "$RT/b.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "이름표가 도형을 덮음"; then ok "이름표가 도형을 덮은 것을 실패로 잡음(exit 4)"; else ng "도형을 덮은 이름표를 못 잡음 (rc=$RC)"; fi
+  cat > "$RT/c.json" <<'J'
+{"template":"iso-bars","items":[{"label":"가","value":-3},{"label":"나","value":5}]}
+J
+  OUT=$(python3 scripts/render_figure.py "$RT/c.json" -o "$RT/c.png" --verify 2>&1); RC=$?
+  if [ $RC -eq 4 ] && echo "$OUT" | grep -q "0 이상인 값만"; then ok "입체 막대의 음수 값을 실패로 잡음(exit 4)"; else ng "음수 입체 막대를 못 잡음 (rc=$RC)"; fi
   rm -rf "$RT"
 fi
 
